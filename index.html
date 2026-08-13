@@ -159,25 +159,30 @@ textarea{resize:vertical}
 .cal-tabs button.on{background:var(--green);color:#fff;font-weight:600}
 .cal-wk{display:flex;align-items:center;justify-content:center;min-width:36px;white-space:nowrap;background:var(--card2);border:1px solid var(--line);border-radius:10px;font-size:.68rem;color:var(--muted);cursor:pointer;transition:.12s;min-height:56px;align-self:stretch}
 .cal-wk:hover{border-color:var(--green);color:var(--green);box-shadow:var(--shadow)}
-.cal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:4px}
-.cal-wcol{min-height:140px;min-width:0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:4px;cursor:pointer;position:relative;transition:.12s}
-.cal-wcol:hover{border-color:var(--green);box-shadow:var(--shadow)}
-.cal-wcol.today{border-color:var(--green);background:#f2f8f1;box-shadow:0 0 0 1px var(--green)}
-.cal-wd{font-size:.75rem;color:var(--muted);font-weight:600;display:block;padding:2px 4px}
-.cal-wcol.today .cal-wd{color:var(--green)}
-.cal-day{margin-top:4px}
-.cal-all{border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;margin-bottom:8px}
-.cal-all-t{font-size:.75rem;color:var(--muted);font-weight:600;margin-bottom:4px}
-.cal-all .cal-block{position:static;width:100%;margin-top:4px}
-.cal-all .cal-block:first-of-type{margin-top:0}
-.cal-hours{position:relative;--hlw:76px}
-.cal-hour{display:flex;height:48px;border-bottom:1px solid #eef2e8;cursor:pointer}
-.cal-hour:hover{background:rgba(76,154,106,.05)}
-.cal-hl{width:var(--hlw);flex:none;font-size:.68rem;color:var(--muted);text-align:right;padding-right:8px;padding-top:2px;user-select:none}
-.cal-hbody{flex:1;position:relative;border-left:1px solid var(--line)}
-.cal-now{position:absolute;left:calc(var(--hlw) + 8px);right:0;height:2px;background:var(--danger);z-index:6;pointer-events:none}
+.cal-wk-tl{--hlw:64px;margin-top:4px}
+.cal-wk-days{display:flex;gap:3px}
+.cal-wk-sp{width:var(--hlw);flex:none}
+.cal-wk-dayhead{flex:1;min-width:0;text-align:center;font-size:.72rem;font-weight:600;color:var(--muted);padding:4px 2px;border:1px solid transparent;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-wk-dayhead.today{color:var(--green);background:#f2f8f1;border-color:var(--green)}
+.cal-wk-allrow{display:flex;gap:3px;margin-top:4px}
+.cal-wk-lbl{width:var(--hlw);flex:none;font-size:.62rem;color:var(--muted);display:flex;align-items:center;justify-content:flex-end;padding-right:6px;user-select:none}
+.cal-wk-allcell{flex:1;min-width:0;min-height:30px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:2px;display:flex;gap:2px;overflow:hidden}
+.cal-wk-allcell .cal-chip{font-size:.6rem;padding:1px 4px;margin:0;min-width:0;border-left:2px solid rgba(255,255,255,.4)}
+.cal-wk-allcell>span{font-size:.58rem;color:var(--muted);align-self:center}
+.cal-wk-grid{display:flex;gap:3px;margin-top:4px}
+.cal-wk-labels{width:var(--hlw);flex:none}
+.cal-wk-lbl-row{height:48px;font-size:.62rem;color:var(--muted);text-align:right;padding-right:6px;padding-top:2px;user-select:none;white-space:nowrap}
+.cal-wk-col{flex:1;min-width:0;position:relative;height:1152px;background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.cal-wk-col.today{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+.cal-wk-row{position:absolute;left:0;right:0;height:48px;border-bottom:1px solid #eef2e8;cursor:pointer}
+.cal-wk-row:hover{background:rgba(76,154,106,.05)}
+.cal-wk-col .cal-block{left:2px;right:2px;border-radius:6px;padding:1px 3px;font-size:.62rem}
+.cal-wk-col .cal-block b{font-size:.64rem}
+.cal-wk-col .cal-block small{display:none}
+.cal-wk-col .cal-now{left:2px;right:0}
+.cal-now{position:absolute;left:6px;right:0;height:2px;background:var(--danger);z-index:6;pointer-events:none}
 .cal-now::before{content:'';position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--danger)}
-.cal-block{position:absolute;left:calc(var(--hlw) + 7px);right:6px;border-left:4px solid rgba(255,255,255,.4);background:var(--c,#4C9A6A);border-radius:8px;padding:2px 6px;font-size:.75rem;overflow:hidden;cursor:pointer;box-shadow:var(--shadow);z-index:2;color:#fff}
+.cal-block{position:absolute;left:6px;right:6px;border-left:4px solid rgba(255,255,255,.4);background:var(--c,#4C9A6A);border-radius:8px;padding:2px 6px;font-size:.75rem;overflow:hidden;cursor:pointer;box-shadow:var(--shadow);z-index:2;color:#fff}
 .cal-block:hover{filter:brightness(.92)}
 .cal-block b{display:block;font-size:.78rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
 .cal-block small{color:rgba(255,255,255,.85);font-size:.68rem}
@@ -366,7 +371,7 @@ const timeAdd=(s,m)=>{const p=String(s||'').split(':');const n=((Number(p[0])||0
 const nowStamp=()=>{const d=new Date();return fmt(d)+' '+pad(d.getHours())+':'+pad(d.getMinutes());};
 /* ========== 存储 ========== */
 let DB=null;
-const state={tab:'today',calY:new Date().getFullYear(),calM:new Date().getMonth(),calView:'month',calD:todayStr(),weekStart:startOfWeek(new Date()),showHiddenEvents:false};
+const state={tab:'today',calY:new Date().getFullYear(),calM:new Date().getMonth(),calView:'month',weekStart:startOfWeek(new Date()),showHiddenEvents:false};
 function defaultSettings(){return {autoDefer:true,rewards:[
 {id:'r1',name:'7天大餐',icon:'meal',track:'streak',threshold:7},
 {id:'r2',name:'130天国内游',icon:'car',track:'streak',threshold:130},
@@ -823,7 +828,7 @@ const text=buildWeekReport();
 openModal('<h3>'+icon('week')+'周报文本</h3><textarea class="code" id="wr" readonly style="min-height:260px">'+esc(text)+'</textarea><div class="md-actions"><button class="btn primary" onclick="App.copyArea(this)">'+icon('copy')+'一键复制</button><button class="btn" onclick="App.downloadTxt()">'+icon('download')+'下载 .txt</button></div>');
 }
 function calHead(title){
-const fd=state.calView==='day'?state.calD:todayStr();
+const fd=todayStr();
 return '<div class="cal-head">'+
 '<button class="btn sm" onclick="App.calShift(-1)">'+icon('arrow-l')+'</button>'+
 '<b>'+title+'</b>'+
@@ -832,13 +837,11 @@ return '<div class="cal-head">'+
 '<div class="cal-tabs">'+
 '<button class="'+(state.calView==='month'?'on':'')+'" onclick="App.calView(\'month\')">月</button>'+
 '<button class="'+(state.calView==='week'?'on':'')+'" onclick="App.calView(\'week\')">周</button>'+
-'<button class="'+(state.calView==='day'?'on':'')+'" onclick="App.calView(\'day\')">日</button>'+
 '</div>'+
 '<button class="btn sm primary" onclick="App.addTask(\''+fd+'\')">'+icon('plus')+'新增</button>'+
 '</div>';
 }
 function viewCal(){
-if(state.calView==='day')return viewCalDay();
 if(state.calView==='week')return viewCalWeek();
 return viewCalMonth();
 }
@@ -853,7 +856,7 @@ const ds=fmt(d);
 const inM=d.getMonth()===m;
 const tasks=tasksOnDay(ds);
 if(i%7===0)cells+='<button class="cal-wk" title="查看该周" onclick="App.calGoWeek(\''+fmt(d)+'\')">'+(d.getMonth()+1)+'/'+d.getDate()+'</button>';
-cells+='<div class="cal-cell '+(inM?'':'dim')+' '+(ds===todayStr()?'today':'')+'" onclick="App.calGoDay(\''+ds+'\')">'+
+cells+='<div class="cal-cell '+(inM?'':'dim')+' '+(ds===todayStr()?'today':'')+'" onclick="App.calGoWeek(\''+ds+'\')">'+
 '<span class="cal-d">'+d.getDate()+'</span>'+
 tasks.slice(0,3).map(t=>'<div class="cal-chip" style="--c:'+THEME_COLOR[t.category]+'">'+esc(short(t.title))+'</div>').join('')+
 (tasks.length>3?'<div class="cal-more">+'+ (tasks.length-3) +'</div>':'')+
@@ -864,43 +867,30 @@ return '<section class="card">'+calHead(y+' 年 '+(m+1)+' 月')+'<div class="cal
 }
 function viewCalWeek(){
 const ws=state.weekStart;
-let cols='';
+const T=todayStr();
+const tm=t=>timeMin(t.startTime||t.endTime||'09:00');
+const offAbs=(base,m)=>base+m-360;
+let labs='';
+for(let r=0;r<24;r++){const h=(r+6)%24;labs+='<div class="cal-wk-lbl-row">'+((r<18?'':'次日')+pad(h)+':00')+'</div>';}
+let days='',allCells='',cols='';
 for(let i=0;i<7;i++){
 const d=addDays(ws,i);
 const ds=fmt(d);
-const tasks=tasksOnDay(ds);
-const all=tasks.filter(t=>!t.startTime&&!t.endTime).sort((a,b)=>a.priority-b.priority);
-const timed=tasks.filter(t=>t.startTime||t.endTime).sort((a,b)=>(a.startTime||'99:99').localeCompare(b.startTime||'99:99'));
-const shown=all.concat(timed).slice(0,6);
-cols+='<div class="cal-wcol '+(ds===todayStr()?'today':'')+'" onclick="App.calGoDay(\''+ds+'\')">'+
-'<span class="cal-wd">周'+WEEK_CN[d.getDay()]+' '+(d.getMonth()+1)+'/'+d.getDate()+'</span>'+
-shown.map(t=>'<div class="cal-chip" style="--c:'+THEME_COLOR[t.category]+'">'+(t.startTime?'<em style="font-style:normal;color:rgba(255,255,255,.85)">'+t.startTime+'</em> ':'')+esc(short(t.title))+'</div>').join('')+
-(tasks.length>6?'<div class="cal-more">+'+ (tasks.length-6) +'</div>':'')+
-'</div>';
-}
-return '<section class="card">'+calHead(fmt(ws)+' ~ '+fmt(addDays(ws,6)))+'<div class="cal-week">'+cols+'</div></section>';
-}
-function viewCalDay(){
-const ds=state.calD;
-const d=parseD(ds);
 const nextDs=fmt(addDays(d,1));
-const dTasks=tasksOnDay(ds);
-const nTasks=tasksOnDay(nextDs);
-const all=dTasks.filter(t=>!t.startTime&&!t.endTime).sort((a,b)=>a.priority-b.priority);
-const tm=t=>timeMin(t.startTime||t.endTime||'09:00');
-const offAbs=(base,m)=>base+m-360;
-const timed=[...dTasks.filter(t=>(t.startTime||t.endTime)&&tm(t)>=360).map(t=>({t,base:0})),
-...nTasks.filter(t=>(t.startTime||t.endTime)&&tm(t)<360).map(t=>({t,base:1440}))]
+const isT=ds===T;
+days+='<div class="cal-wk-dayhead '+(isT?'today':'')+'">周'+WEEK_CN[d.getDay()]+' '+(d.getMonth()+1)+'/'+d.getDate()+'</div>';
+const all=tasksOnDay(ds).filter(t=>!t.startTime&&!t.endTime).sort((a,b)=>a.priority-b.priority);
+allCells+='<div class="cal-wk-allcell">'+all.slice(0,3).map(t=>'<div class="cal-chip" style="--c:'+THEME_COLOR[t.category]+'">'+esc(short(t.title))+'</div>').join('')+(all.length>3?'<span>+'+(all.length-3)+'</span>':'')+'</div>';
+const timed=[...tasksOnDay(ds).filter(t=>(t.startTime||t.endTime)&&tm(t)>=360).map(t=>({t,base:0})),
+...tasksOnDay(nextDs).filter(t=>(t.startTime||t.endTime)&&tm(t)<360).map(t=>({t,base:1440}))]
 .sort((a,b)=>offAbs(a.base,tm(a.t))-offAbs(b.base,tm(b.t)));
-const allHtml=all.length?all.map(t=>'<div class="cal-block'+(t.status==='done'?' done':'')+'" style="--c:'+THEME_COLOR[t.category]+'" onclick="App.editTask(\''+t.id+'\')"><b>'+esc(t.title)+'</b></div>').join(''):'<div class="empty" style="padding:4px">该日暂无不定时任务</div>';
-let hours='';
+let rows='',blocks='';
 for(let r=0;r<24;r++){
 const h=(r+6)%24;
 const hd=r<18?ds:nextDs;
-const lab=(r<18?'':'次日')+pad(h)+':00';
-hours+='<div class="cal-hour" onclick="App.addTask({date:\''+hd+'\',time:\''+pad(h)+':00\'})"><span class="cal-hl">'+lab+'</span><div class="cal-hbody"></div></div>';
+rows+='<div class="cal-wk-row" style="top:'+(r*48)+'px" onclick="App.addTask({date:\''+hd+'\',time:\''+pad(h)+':00\'})"></div>';
 }
-const blocks=timed.map(e=>{
+blocks=timed.map(e=>{
 const t=e.t,base=e.base;
 const sm=tm(t);
 let em;
@@ -912,15 +902,17 @@ const h=Math.max(bottom-top,18);
 return '<div class="cal-block'+(t.status==='done'?' done':'')+'" style="--c:'+THEME_COLOR[t.category]+';top:'+top+'px;height:'+h+'px" onclick="App.editTask(\''+t.id+'\')"><b>'+esc(t.title)+'</b><small>'+esc(t.startTime||'')+(t.endTime?' ~ '+esc(t.endTime):'')+'</small></div>';
 }).join('');
 let now='';
-const T=todayStr();
 const nd=new Date();
 const mn=nd.getHours()*60+nd.getMinutes();
 if(T===ds&&mn>=360)now='<div class="cal-now" style="top:'+((mn-360)*0.8)+'px"></div>';
 else if(T===nextDs&&mn<360)now='<div class="cal-now" style="top:'+((1440+mn-360)*0.8)+'px"></div>';
-return '<section class="card">'+calHead(d.getFullYear()+' 年 '+(d.getMonth()+1)+' 月 '+d.getDate()+' 日 · 周'+WEEK_CN[d.getDay()])+
-'<div class="cal-day">'+
-'<div class="cal-all"><div class="cal-all-t">不定时</div>'+allHtml+'</div>'+
-'<div class="cal-hours">'+hours+blocks+now+'</div>'+
+cols+='<div class="cal-wk-col '+(isT?'today':'')+'">'+rows+blocks+now+'</div>';
+}
+return '<section class="card">'+calHead(fmt(ws)+' ~ '+fmt(addDays(ws,6)))+
+'<div class="cal-wk-tl">'+
+'<div class="cal-wk-days"><div class="cal-wk-sp"></div>'+days+'</div>'+
+'<div class="cal-wk-allrow"><div class="cal-wk-lbl">不定时</div>'+allCells+'</div>'+
+'<div class="cal-wk-grid"><div class="cal-wk-labels">'+labs+'</div>'+cols+'</div>'+
 '</div></section>';
 }
 function viewMe(){
@@ -1404,11 +1396,9 @@ weekReport:weekReport,monthReport:monthReport,buildMonthReport:buildMonthReport,
 calView(k){state.calView=k;render();},
 calShift(n){
 if(state.calView==='week'){state.weekStart=addDays(state.weekStart,n*7);}
-else if(state.calView==='day'){state.calD=fmt(addDays(parseD(state.calD),n));}
 else{const d=new Date(state.calY,state.calM+n,1);state.calY=d.getFullYear();state.calM=d.getMonth();}
 render();},
-calToday(){state.calY=new Date().getFullYear();state.calM=new Date().getMonth();state.calD=todayStr();state.weekStart=startOfWeek(new Date());render();},
-calGoDay(ds){state.calView='day';state.calD=ds;render();},
+calToday(){state.calY=new Date().getFullYear();state.calM=new Date().getMonth();state.weekStart=startOfWeek(new Date());render();},
 calGoWeek(ds){state.calView='week';state.weekStart=startOfWeek(parseD(ds));render();},
 addTask:addTask,periodToggle:periodToggle,weekdayPick:weekdayPick,saveTask:saveTask,
 editTask:editTask,delTask:delTask,goalPlus:goalPlus,

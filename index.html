@@ -647,7 +647,7 @@ const max=Math.max(1,...days.map(d=>d.n));
 let bars='';
 days.forEach((d,i)=>{
 const x=4+i*40,h=Math.round(d.n/max*54)+4,y=72-h;
-bars+='<g><rect x="'+x+'" y="'+y+'" width="30" height="'+h+'" rx="4" class="cb '+(d.n?'':'off')+'"'+(d.ds===todayStr()?' data-today':'')+'/><text x="'+(x+15)+'" y="66" text-anchor="middle" class="bar-n">'+(d.n||'')+'</text><text x="'+(x+15)+'" y="82" text-anchor="middle" class="bar-w">'+d.w+'</text></g>';
+bars+='<g><rect x="'+x+'" y="'+y+'" width="30" height="'+h+'" rx="4" class="cb '+(d.n?'':'off')+'"'+(d.ds===todayStr()?' data-today':'')+'/><text x="'+(x+15)+'" y="'+(72-h-3)+'" text-anchor="middle" class="bar-n">'+(d.n||'')+'</text><text x="'+(x+15)+'" y="82" text-anchor="middle" class="bar-w">'+d.w+'</text></g>';
 });
 return '<svg class="chart" viewBox="0 0 280 84">'+bars+'</svg>';
 }

@@ -549,8 +549,7 @@ return '<div class="done"><span class="smile">'+icon('smile')+'</span>'+
 function badgesHtml(){
 const s=streakInfo().streak;
 const sb=DB.settings.rewards.filter(r=>r.track==='streak').map(r=>({name:r.name,icon:r.icon,cur:s,threshold:r.threshold,unit:'天'}));
-const gb=DB.goals.map(g=>({name:g.title+' · 圆满达成',icon:'flag',cur:Math.round(g.current/g.target*100),threshold:100,unit:'%'}));
-const all=sb.concat(gb);
+const all=sb;
 return '<section class="card badge-card"><h2 style="display:flex;align-items:center;gap:6px;margin:6px 0 8px;font-size:.85rem">'+icon('star')+'奖励勋章</h2><div class="badges">'+
 all.map(b=>{
 const pct=clamp(Math.round(b.cur/b.threshold*100),0,100);

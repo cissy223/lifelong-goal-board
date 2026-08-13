@@ -732,6 +732,7 @@ return '<section class="card"><div class="cal-head">'+
 '</div></section>'+
 '<section class="sec"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('star')+'本周成果亮点 <span style="background:var(--amber);color:#fff;border-radius:99px;font-size:.72rem;padding:1px 9px">'+hl.length+'</span></h2>'+
 '<div class="card">'+(hl.length?hl.map(c=>'<div style="padding:7px 0;border-bottom:1px dashed var(--line);font-size:.85rem"><b>'+esc(ckLine(c))+'</b><span style="color:var(--muted);font-size:.75rem"> · '+mmdd(c.date)+'</span></div>').join(''):'<div class="empty">本周还没有亮点</div>')+'</div></section>'+
+'<section class="sec"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('chart')+'上周同口径环比</h2><div class="card">'+cmpRow('打卡天数',days,prevDays)+cmpRow('打卡条数',chk.length,prevChk.length)+cmpRow('完成项',workDone.length,prevWork.length)+'</div></section>'+
 '<section class="sec"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('fire')+'打卡记录 <span style="background:var(--green);color:#fff;border-radius:99px;font-size:.72rem;padding:1px 9px">'+chk.length+'</span></h2>'+
 '<div class="card">'+(chk.length?chk.map(c=>{
 const task=c.taskId?DB.tasks.find(t=>t.id===c.taskId):null;
@@ -741,8 +742,7 @@ return '<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px dashed 
 '<div style="color:var(--ink);font-size:.82rem">'+esc(c.content)+'</div></div></div>';
 }).join(''):'<div class="empty">本周还没有打卡</div>')+'</div></section>'+
 '<section class="sec"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('box')+'工作完成项 <span style="background:var(--amber);color:#fff;border-radius:99px;font-size:.72rem;padding:1px 9px">'+workDone.length+'</span></h2>'+
-'<div class="card">'+(workDone.length?workDone.map(t=>'<div style="padding:7px 0;border-bottom:1px dashed var(--line)"><b style="font-size:.88rem">'+esc(t.title)+'</b>'+(t.summary?'<div style="color:var(--muted);font-size:.8rem;margin-top:2px">成果：'+esc(t.summary)+'</div>':'')+'</div>').join(''):'<div class="empty">本周暂无完成的工作项</div>')+'</div></section>'+
-'<section class="sec"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('chart')+'上周 vs 本周</h2><div class="card">'+cmpRow('打卡天数',days,prevDays)+cmpRow('打卡条数',chk.length,prevChk.length)+cmpRow('完成项',workDone.length,prevWork.length)+'</div></section>';
+'<div class="card">'+(workDone.length?workDone.map(t=>'<div style="padding:7px 0;border-bottom:1px dashed var(--line)"><b style="font-size:.88rem">'+esc(t.title)+'</b>'+(t.summary?'<div style="color:var(--muted);font-size:.8rem;margin-top:2px">成果：'+esc(t.summary)+'</div>':'')+'</div>').join(''):'<div class="empty">本周暂无完成的工作项</div>')+'</div></section>';
 }
 function buildWeekReport(){
 const ws=state.weekStart,wStart=fmt(ws),wEnd=fmt(addDays(ws,6));

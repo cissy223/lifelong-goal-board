@@ -304,6 +304,7 @@ const THEMES=['学习','健康','工作','理财','人际','兴趣'];
 const THEME_COLOR={'学习':'#3E7CB1','健康':'#4C9A6A','工作':'#C08A3E','理财':'#8E6BBF','人际':'#D9706C','兴趣':'#D1789F'};
 const TYPE_COLOR={'感悟':'#3E7CB1','视频链接':'#8E6BBF','成品':'#4C9A6A','通用':'#C08A3E'};
 const PRI=['重要且紧急','重要不紧急','不重要紧急','不重要不紧急'];
+const PRI_BG=['rgba(214,69,69,.10)','rgba(217,146,46,.12)','rgba(228,161,27,.12)','rgba(139,149,163,.12)'];
 const WEEK_CN=['日','一','二','三','四','五','六'];
 const PRAISE=['真棒！','稳住了！','漂亮！','求上进！','又进一步！','优秀！'];
 const TABS=[['today','今日','today'],['board','看板','board'],['week','周报','week'],['cal','日历','cal'],['me','我的','me']];
@@ -510,10 +511,9 @@ const odDays=od>0?od+' 天':'';
 const pp=t.period?periodProgress(t):t.progress;
 const doneToday=!!(t.period&&(t.doneDates||[]).includes(T));
 const goalTag=t.goalId?((DB.goals.find(x=>x.id===t.goalId)||{}).title||''):'';
-return '<div class="todo '+(od>0?'overdue':'')+(doneToday?' today-done':'')+'" id="tk-'+t.id+'">'+
+return '<div class="todo '+(od>0?'overdue':'')+(doneToday?' today-done':'')+'" style="background:'+PRI_BG[t.priority]+'" id="tk-'+t.id+'">'+
 '<div class="t-main">'+
 '<div class="t-top"><span class="tag" style="background:'+THEME_COLOR[t.category]+'">'+t.category+'</span>'+
-'<span class="tag" style="background:'+(t.priority===0?'#D64545':t.priority===1?'#D9922E':t.priority===2?'#E4A11B':'#8b95a3')+'">'+PRI[t.priority]+'</span>'+
 (goalTag?'<span class="per-badge" style="background:var(--green);color:#fff">'+esc(goalTag)+'</span>':'')+
 (od>0?'<span class="od-badge">逾期 '+odDays+'</span>':'')+
 (t.period?'<span class="per-badge">'+periodWeekdays(t)+'</span>':'')+

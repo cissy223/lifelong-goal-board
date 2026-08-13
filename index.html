@@ -535,7 +535,6 @@ return '<div class="todo '+(od>0?'overdue':'')+(doneToday?' today-done':'')+'" i
 ?(doneToday?'<button class="btn" title="撤销今日完成" onclick="App.undoDone(\''+t.id+'\')">'+icon('refresh')+'撤销</button>':(plannedToday?'<button class="btn primary" title="今日完成" onclick="App.done(\''+t.id+'\')">'+icon('check')+'完成</button>':'<button class="btn" title="不在计划日，点击将整项完成" onclick="App.done(\''+t.id+'\')">'+icon('check')+'完成</button>'))
 :'<button class="btn primary" title="一键完成" onclick="App.done(\''+t.id+'\')">'+icon('check')+'完成</button>')+
 (t.period?'':'<button class="btn" title="顺延到明天" onclick="App.defer(\''+t.id+'\')">'+icon('defer')+'顺延</button>')+
-'<button class="btn" title="改期" onclick="App.reschedule(\''+t.id+'\')">'+icon('cal')+'改期</button>'+
 '<button class="btn" title="打卡成果" onclick="App.checkinModal(\''+t.id+'\')">'+icon('spark')+'打卡</button>'+
 '<button class="btn" title="编辑" onclick="App.editTask(\''+t.id+'\')">'+icon('edit')+'</button>'+
 '</div></div>';
@@ -546,7 +545,7 @@ return '<div class="done"><span class="smile">'+icon('smile')+'</span>'+
 '<div style="flex:1;min-width:0">'+
 '<div class="t-top" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px"><span class="tag" style="background:'+THEME_COLOR[t.category]+'">'+t.category+'</span><span style="font-size:.72rem;color:var(--muted)">完成于 '+(t.completedAt||'')+'</span></div>'+
 '<div class="t-title">'+esc(t.title)+'</div>'+
-(t.summary?'<div class="sum">成果：'+esc(t.summary)+'</div>':'<button class="btn sm" style="margin-top:4px" onclick="App.editTask(\''+t.id+'\')">补写成果摘要</button>')+
+(t.summary?'<div class="sum">成果：'+esc(t.summary)+'</div>':'<button class="btn sm" style="margin-top:4px" onclick="App.checkinModal(\''+t.id+'\')">补写成果/复盘</button>')+
 (t.review?'<div class="rev">复盘：'+esc(t.review)+'</div>':'')+
 '</div><div class="praise">'+p+'</div></div>';
 }
@@ -922,8 +921,6 @@ t.updatedAt=Date.now();settlePeriods();save();closePop();render();showToast('今
 t.status='done';t.progress=100;t.completedAt=nowStamp();t.updatedAt=Date.now();if(t.goalId)goalAdd(t.goalId,1);save();closePop();render();showToast('已完成，求上进！');
 }
 function defer(id){const t=DB.tasks.find(x=>x.id===id);if(!t)return;t.dueDate=fmt(addDays(new Date(),1));t.deferCount=(t.deferCount||0)+1;t.updatedAt=Date.now();save();closePop();render();showToast('已顺延到明天');}
-function reschedule(id){const t=DB.tasks.find(x=>x.id===id);if(!t)return;openModal('<h3>'+icon('cal')+'改期「'+esc(t.title)+'」</h3><label>预计开始时间</label><input type="date" id="rs-s" value="'+(t.startDate||todayStr())+'"><label>截止日期</label><input type="date" id="rs-d" value="'+(t.dueDate||todayStr())+'"><div class="md-actions"><button class="btn" onclick="App.closeModal()">取消</button><button class="btn primary" onclick="App.saveReschedule(\''+id+'\')">保存</button></div>');}
-function saveReschedule(id){const t=DB.tasks.find(x=>x.id===id);if(!t)return;t.startDate=$('#rs-s').value||null;t.dueDate=$('#rs-d').value||null;t.updatedAt=Date.now();closeModal();save();render();showToast('已更新日期');}
 function taskModal(editId,prefill){
 const t=editId?DB.tasks.find(x=>x.id===editId):null;
 tid=editId||null;
@@ -937,19 +934,16 @@ openModal('<h3>'+icon(t?'edit':'plus')+(t?'编辑「'+esc(t.title)+'」':'新增
 '<label>关联目标</label><select id="at-goal"><option value="">无</option>'+DB.goals.map(g=>'<option value="'+g.id+'" '+(t&&t.goalId===g.id?'selected':'')+'>'+esc(g.title)+'</option>').join('')+'</select>'+
 '<div style="display:flex;gap:10px"><div style="flex:1"><label>预计开始时间</label><input type="date" id="at-start" value="'+(t&&t.startDate?t.startDate:(t?'':d))+'"></div>'+
 '<div style="flex:1"><label>截止日期</label><input type="date" id="at-due" value="'+(t&&t.dueDate?t.dueDate:(t?'':d))+'"></div></div>'+
-'<label class="chk"><input type="checkbox" id="at-period" '+(period?'checked':'')+' onchange="App.periodToggle(this)"> 重复任务（一段时间内按周重复，如：30 天口语训练）</label>'+
+'<label class="chk"><input type="checkbox" id="at-period" '+(period?'checked':'')+' onchange="App.periodToggle(this)"> 重复任务</label>'+
 '<div id="at-wd-wrap" style="display:'+(period?'block':'none')+'">'+
 '<label>每周安排 <small style="color:var(--muted)">（每周 <b id="at-wd-n">'+wd.length+'</b> 次）</small></label>'+
 '<div id="at-wd" style="display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 6px">'+
 [1,2,3,4,5,6,0].map(v=>'<label class="chk wd-cb" style="margin:0"><input type="checkbox" value="'+v+'" '+(t&&period&&!wd.includes(v)?'':'checked')+' onchange="App.weekdayPick(\'at-wd\')">周'+WEEK_CN[v]+'</label>').join('')+
 '</div>'+
-'<label class="chk"><input type="checkbox" id="at-skip" '+(t&&t.skipHolidays?'checked':'')+'> 跳过法定节假日（2026 内置，可 JSON 扩展）</label>'+
+'<label class="chk"><input type="checkbox" id="at-skip" '+(t&&t.skipHolidays?'checked':'')+'> 跳过法定节假日</label>'+
 '</div>'+
 '<label>说明</label><input id="at-desc" maxlength="120" value="'+esc(t?t.desc:'')+'" placeholder="可选">'+
-(t?(
-'<label>成果摘要</label><textarea id="et-sum" rows="2" placeholder="完成后的产出/结果">'+esc(t.summary||'')+'</textarea>'+
-'<label>复盘</label><textarea id="et-rev" rows="2" placeholder="经验/教训/下一步">'+esc(t.review||'')+'</textarea>'
-):'')+
+
 '<div class="md-actions">'+(t?'<button class="btn danger" onclick="App.delTask(\''+t.id+'\')">'+icon('trash')+'删除</button>':'')+
 '<button class="btn" onclick="App.closeModal()">取消</button><button class="btn primary" onclick="App.saveTask()">保存</button></div>');
 setTimeout(()=>{const el=$('#at-title');if(el)el.focus();},50);
@@ -969,7 +963,6 @@ const data={title:title,desc:$('#at-desc').value.trim(),category:$('#at-cat').va
 if(tid){
 const t=DB.tasks.find(x=>x.id===tid);if(!t){closeModal();return;}
 Object.assign(t,data);
-t.summary=$('#et-sum').value.trim();t.review=$('#et-rev').value.trim();
 if(!period){t.doneDates=[];}
 tid=null;closeModal();save();render();showToast('已保存');
 }else{
@@ -984,11 +977,24 @@ function delTask(id){confirmModal('删除任务','确定删除「'+esc(DB.tasks.
 function checkinModal(taskId){
 const t=taskId?DB.tasks.find(x=>x.id===taskId):null;
 openModal('<h3>'+icon('spark')+'打卡成果</h3>'+
-'<label>关联任务（可选）</label><select id="ck-task"><option value="">无（自由打卡）</option>'+DB.tasks.filter(x=>x.status==='todo').map(x=>'<option value="'+x.id+'" '+(x.id===taskId?'selected':'')+'>'+esc(x.title)+'</option>').join('')+'</select>'+
+'<label>关联任务（可选）</label><select id="ck-task" onchange="App.ckTaskPick()"><option value="">无（自由打卡）</option>'+DB.tasks.filter(x=>x.status==='todo').map(x=>'<option value="'+x.id+'" '+(x.id===taskId?'selected':'')+'>'+esc(x.title)+'</option>').join('')+'</select>'+
 '<label>今天做了什么？输入后自动识别类型</label><textarea id="ck-content" rows="3" placeholder="例如：精听英语 30 分钟，完成口语录音复盘…" oninput="App.detectCk(this)"></textarea>'+
 '<label>类型（可手动修改）</label><div id="ck-type" style="margin-top:4px">'+Object.keys(TYPE_COLOR).map(k=>'<label class="tradio"><input type="radio" name="ck-t" value="'+k+'" '+(k==='通用'?'checked':'')+'><span class="dot" style="background:'+TYPE_COLOR[k]+'"></span>'+k+'</label>').join('')+'</div>'+
+'<div id="ck-sr-wrap" style="display:'+(t?'block':'none')+'">'+
+'<label>成果摘要</label><textarea id="ck-sum" rows="2" placeholder="完成后的产出/结果">'+esc(t?t.summary||'':'')+'</textarea>'+
+'<label>复盘</label><textarea id="ck-rev" rows="2" placeholder="经验/教训/下一步">'+esc(t?t.review||'':'')+'</textarea>'+
+'</div>'+
 '<div class="md-actions"><button class="btn" onclick="App.closeModal()">取消</button><button class="btn primary" onclick="App.submitCheckin()">'+icon('spark')+'生成复盘</button></div>');
 setTimeout(()=>{const el=$('#ck-content');if(el)el.focus();},50);
+}
+function ckTaskPick(){
+const id=$('#ck-task').value;
+const t=id?DB.tasks.find(x=>x.id===id):null;
+const wrap=$('#ck-sr-wrap');
+if(wrap)wrap.style.display=t?'block':'none';
+const s=$('#ck-sum'),r=$('#ck-rev');
+if(s)s.value=t?t.summary||'':'';
+if(r)r.value=t?t.review||'':'';
 }
 function detectCk(el){
 if(!el||!el.value)return;
@@ -1004,7 +1010,7 @@ const taskId=$('#ck-task').value;
 const hits=matchThemes(content);
 const c={id:uid(),date:todayStr(),taskId:taskId||null,type:type,content:content,evaluation:makeEval(type,content,hits),suggestions:makeSuggestions(hits),themes:hits.map(h=>h.theme),cross:makeCross(hits),createdAt:Date.now()};
 DB.checkins.push(c);
-if(taskId){const t=DB.tasks.find(x=>x.id===taskId);if(t){t.checkins=t.checkins||[];t.checkins.push(c.id);t.review=c.evaluation+(c.cross?'\n'+c.cross:'');t.updatedAt=Date.now();}}
+if(taskId){const t=DB.tasks.find(x=>x.id===taskId);if(t){t.checkins=t.checkins||[];t.checkins.push(c.id);const sr=$('#ck-sum').value.trim();const rr=$('#ck-rev').value.trim();if(sr)t.summary=sr;t.review=rr||(c.evaluation+(c.cross?'\n'+c.cross:''));t.updatedAt=Date.now();}}
 save();render();
 openModal('<h3>'+icon('spark')+'复盘已生成</h3>'+
 '<div class="eval"><b>'+c.type+' · '+(c.themes.length?c.themes.join(' / '):'未命中主题')+'</b><p>'+esc(c.evaluation)+'</p></div>'+
@@ -1292,8 +1298,8 @@ calToday(){state.calY=new Date().getFullYear();state.calM=new Date().getMonth();
 popDay:popDay,
 addTask:addTask,periodToggle:periodToggle,weekdayPick:weekdayPick,saveTask:saveTask,
 editTask:editTask,delTask:delTask,goalPlus:goalPlus,
-done:done,undoDone:undoDone,defer:defer,reschedule:reschedule,saveReschedule:saveReschedule,
-checkinModal:checkinModal,detectCk:detectCk,submitCheckin:submitCheckin,
+done:done,undoDone:undoDone,defer:defer,
+checkinModal:checkinModal,ckTaskPick:ckTaskPick,detectCk:detectCk,submitCheckin:submitCheckin,
 exportJSON:exportJSON,copyJSON:copyJSON,openExportModal:openExportModal,copyArea:copyArea,downloadTxt:downloadTxt,
 importFile:importFile,pasteImport:pasteImport,doPasteImport:doPasteImport,
 clearAll:clearAll,setAutoDefer:setAutoDefer,

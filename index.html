@@ -687,7 +687,7 @@ return '<section class="card goal '+(risk!=='ok'?risk:'')+'">'+
 '<div class="g-head">'+ring(pct,THEME_COLOR[g.theme],g.current,g.target,g.unit)+
 '<div class="g-info"><div class="g-tags"><span class="tag" style="background:'+THEME_COLOR[g.theme]+'">'+g.theme+'</span>'+
 (risk==='danger'?'<span class="tag risk">'+icon('alert')+'进度落后</span>':'')+
-(risk==='warn'?'<span class="tag warn">'+icon('alert')+'略低于计划</span>':'')+'<button class="btn sm" title="记一次，进度+1" onclick="App.goalPlus(\''+g.id+'\')">+1</button><button class="btn sm" style="margin-left:auto" onclick="App.editGoal(\''+g.id+'\')">'+icon('edit')+'编辑</button>'+
+(risk==='warn'?'<span class="tag warn">'+icon('alert')+'略低于计划</span>':'')+'<button class="btn sm" style="margin-left:auto" onclick="App.editGoal(\''+g.id+'\')">'+icon('edit')+'编辑</button>'+
 '</div><h3>'+esc(g.title)+'</h3><p>'+esc(g.desc)+'</p>'+
 '<div class="g-meta">'+
 '<span>'+icon('flag')+'截止 <b>'+(g.endDate||'长期')+'</b>'+(g.endDate?'（剩 '+daysLeft+' 天）':'')+'</span>'+
@@ -1324,7 +1324,6 @@ openModal('<h3>'+icon('target')+(g?'编辑目标':'新增目标')+'</h3>'+
 setTimeout(()=>{const el=$('#gl-title');if(el)el.focus();},50);
 }
 function editGoal(id){goalModal(id);}
-function goalPlus(id){const g=DB.goals.find(x=>x.id===id);if(!g)return;g.current=(Number(g.current)||0)+1;g.updatedAt=Date.now();save();render();showToast('目标「'+g.title+'」进度 +1');}
 function saveGoal(){
 const title=$('#gl-title').value.trim();if(!title){showToast('请输入目标标题');return;}
 const target=Math.max(1,Number($('#gl-target').value)||1);
@@ -1403,7 +1402,7 @@ render();},
 calToday(){state.calY=new Date().getFullYear();state.calM=new Date().getMonth();state.weekStart=startOfWeek(new Date());render();},
 calGoWeek(ds){state.calView='week';state.weekStart=startOfWeek(parseD(ds));render();},
 addTask:addTask,periodToggle:periodToggle,weekdayPick:weekdayPick,saveTask:saveTask,
-editTask:editTask,delTask:delTask,goalPlus:goalPlus,
+editTask:editTask,delTask:delTask,
 done:done,undoDone:undoDone,defer:defer,
 checkinModal:checkinModal,ckTaskPick:ckTaskPick,detectCk:detectCk,submitCheckin:submitCheckin,
 exportJSON:exportJSON,copyJSON:copyJSON,openExportModal:openExportModal,copyArea:copyArea,downloadTxt:downloadTxt,

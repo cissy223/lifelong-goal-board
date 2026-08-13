@@ -1038,7 +1038,7 @@ return '<div class="cd-item'+(e.done?' done':'')+cls+'" onclick="App.editEvent(\
 '<button class="btn sm" onclick="event.stopPropagation();App.editEvent(\''+e.id+'\')">'+icon('edit')+'</button>'+
 '</div></div>';
 };
-return '<section class="card cd-card"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('flag')+'倒计时 <button class="btn sm primary" style="margin-left:auto" onclick="App.eventModal(\'\')">'+icon('edit')+'</button></h2>'+
+return '<section class="card cd-card"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('flag')+'倒计时 <button class="btn sm primary" style="margin-left:auto" onclick="App.eventModal(\'\')">+</button></h2>'+
 (active.length?active.map(row).join(''):'<div class="empty">还没有重要事件</div>')+
 (hidden.length?'<div class="cd-hidden"><button class="btn sm" onclick="App.toggleHiddenEvents()">已隐藏 '+hidden.length+' 个</button>'+(state.showHiddenEvents?hidden.map(row).join(''):'')+'</div>':'')+
 '</section>';

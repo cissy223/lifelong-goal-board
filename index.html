@@ -202,7 +202,7 @@ textarea{resize:vertical}
 .quote p{font-size:.85rem;line-height:1.7}
 @media(max-width:1180px){#rail{display:none}}
 @media(max-width:768px){
-#app{flex-direction:column;padding:10px 12px 80px}
+#app{flex-direction:column;padding:10px 12px 80px;align-items:stretch}
 #sidebar{display:none}
 #mhead{display:flex;align-items:center;justify-content:space-between;padding:4px 0}
 .layers{grid-template-columns:1fr}
@@ -550,7 +550,7 @@ const s=streakInfo().streak;
 const sb=DB.settings.rewards.filter(r=>r.track==='streak').map(r=>({name:r.name,icon:r.icon,cur:s,threshold:r.threshold,unit:'天'}));
 const gb=DB.goals.map(g=>({name:g.title+' · 圆满达成',icon:'flag',cur:Math.round(g.current/g.target*100),threshold:100,unit:'%'}));
 const all=sb.concat(gb);
-return '<section class="card"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('star')+'奖励勋章 <button class="btn sm primary" style="margin-left:auto" onclick="App.badgeManage()">'+icon('sliders')+'管理</button></h2><div class="badges">'+
+return '<section class="card"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('star')+'奖励勋章 <button class="btn sm primary" style="margin-left:auto" onclick="App.badgeManage()">'+icon('edit')+'</button></h2><div class="badges">'+
 all.map(b=>{
 const pct=clamp(Math.round(b.cur/b.threshold*100),0,100);
 const on=pct>=100;
@@ -577,10 +577,10 @@ return '<div class="li" onclick="App.editGoal(\''+g.id+'\')"><span class="dot" s
 '<div class="bar" style="margin:0 4px 6px 18px"><i style="width:'+pct+'%"></i></div>';
 }).join(''):'<div class="empty">本月暂无目标</div>')+
 '</div>'+
-'<div class="layer"><h4>'+icon('week')+'本周目标 <small style="font-weight:400;color:var(--muted)">'+fmt(ws)+'~'+fmt(we)+'</small><button class="btn sm primary" style="margin-left:auto" onclick="App.taskManage(\'week\')">'+icon('edit')+'</button></h4>'+
+'<div class="layer"><h4>'+icon('week')+'本周目标<button class="btn sm primary" style="margin-left:auto" onclick="App.taskManage(\'week\')">'+icon('edit')+'</button></h4>'+
 (wtasks.length?wtasks.slice(0,5).map(t=>'<div class="li" onclick="App.editTask(\''+t.id+'\')"><span class="tag" style="background:'+(t.priority===0?'#D64545':t.priority===1?'#D9922E':'#8b95a3')+';padding:1px 6px">'+PRI[t.priority]+'</span><span class="t">'+esc(t.title)+'</span><small>'+t.dueDate.slice(5)+'</small></div>').join(''):'<div class="empty">本周暂无计划</div>')+
 '</div>'+
-'<div class="layer"><h4>'+icon('today')+'今日待办 <small style="font-weight:400;color:var(--muted)">'+ttasks.length+' 项</small><button class="btn sm primary" style="margin-left:auto" onclick="App.taskManage(\'today\')">'+icon('edit')+'</button></h4>'+
+'<div class="layer"><h4>'+icon('today')+'今日待办<button class="btn sm primary" style="margin-left:auto" onclick="App.taskManage(\'today\')">'+icon('edit')+'</button></h4>'+
 (ttasks.length?ttasks.slice(0,5).map(t=>{
 const od=t.dueDate&&t.dueDate<T;
 return '<div class="li" onclick="App.scrollTask(\''+t.id+'\')"><span class="dot" style="background:'+(od?'#D64545':'var(--green)')+'"></span><span class="t">'+esc(t.title)+'</span><small>'+(od?'逾期':'今日')+'</small></div>';

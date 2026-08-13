@@ -1,6 +1,6 @@
 # 终身目标管理台
 
-单文件离线可用的个人目标管理台（HTML/CSS/JS 全内联、零外链、零 emoji），融合 WorkBuddy 工作台模型与「月→周→日」三层目标对齐。
+单文件离线可用的个人目标管理台（HTML/CSS/JS 全内联、零外链、零 emoji），融合 WorkBuddy 工作台模型与「年→月→日」三层目标对齐。
 
 - 线上地址：https://lifelong-goal-board.netlify.app
 - 数据存储：浏览器 localStorage + 可选 Netlify Blobs 云同步（netlify/functions/sync.mjs）

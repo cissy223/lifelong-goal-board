@@ -564,26 +564,38 @@ return '<div class="badge '+(on?'on':'')+'"><div class="badge-ic">'+icon(b.icon)
 }
 function layersHtml(){
 const T=todayStr();
-const ms=startOfMonth(new Date());
+const now=new Date();
+const ys=new Date(now.getFullYear(),0,1);
+const ye=new Date(now.getFullYear(),11,31);
+const ms=startOfMonth(now);
 const me=new Date(ms.getFullYear(),ms.getMonth()+1,0);
-const mgoals=DB.goals.filter(g=>{
-const gs=g.startDate?parseD(g.startDate):ms;
+const overlap=(g,from,to)=>{
+const gs=g.startDate?parseD(g.startDate):from;
 const ge=g.endDate?parseD(g.endDate):new Date(2999,11,31);
-return ge>=ms&&gs<=me;
-});
-const ws=state.weekStart,we=addDays(ws,6);
-const wtasks=DB.tasks.filter(t=>t.status==='todo'&&t.dueDate&&t.dueDate>=fmt(ws)&&t.dueDate<=fmt(we)).sort((a,b)=>(a.priority-b.priority)||a.dueDate.localeCompare(b.dueDate));
+return ge>=from&&gs<=to;
+};
+const monthsLeft=g=>{
+const endD=g.endDate?parseD(g.endDate):ye;
+return Math.max(1,(endD.getFullYear()-now.getFullYear())*12+(endD.getMonth()-now.getMonth())+1);
+};
+const ygoals=DB.goals.filter(g=>overlap(g,ys,ye));
+const mgoals=DB.goals.filter(g=>overlap(g,ms,me));
 const ttasks=DB.tasks.filter(t=>t.status==='todo'&&dueOn(t,T)).sort((a,b)=>(a.priority-b.priority)||(a.dueDate||'').localeCompare(b.dueDate||''));
-return '<section class="layers">'+
-'<div class="layer"><h4>'+icon('target')+'本月目标<button class="btn sm primary" style="margin-left:auto" onclick="App.goalManage()">'+icon('edit')+'</button></h4>'+
-(mgoals.length?mgoals.slice(0,4).map(g=>{
+const goalRow=(g,mode)=>{
 const pct=clamp(Math.round(g.current/g.target*100),0,100);
-return '<div class="li" onclick="App.editGoal(\''+g.id+'\')"><span class="dot" style="background:'+THEME_COLOR[g.theme]+'"></span><span class="t">'+esc(g.title)+'</span><small>'+pct+'%</small></div>'+
+const mL=monthsLeft(g);
+const rem=Math.max(0,g.target-g.current);
+const sug=mL>0&&rem>0?Math.ceil(rem/mL):0;
+const small=mode==='y'?pct+'% · 剩 '+mL+' 个月':pct+'%'+(sug>0?' · 建议+'+sug:'');
+return '<div class="li" onclick="App.editGoal(\''+g.id+'\')"><span class="dot" style="background:'+THEME_COLOR[g.theme]+'"></span><span class="t">'+esc(g.title)+'</span><small>'+small+'</small></div>'+
 '<div class="bar" style="margin:0 4px 6px 18px"><i style="width:'+pct+'%"></i></div>';
-}).join(''):'<div class="empty">本月暂无目标</div>')+
+};
+return '<section class="layers">'+
+'<div class="layer"><h4>'+icon('flag')+'本年目标<button class="btn sm primary" style="margin-left:auto" onclick="App.goalManage()">'+icon('edit')+'</button></h4>'+
+(ygoals.length?ygoals.slice(0,4).map(g=>goalRow(g,'y')).join(''):'<div class="empty">今年还没有目标，点右上角新建</div>')+
 '</div>'+
-'<div class="layer"><h4>'+icon('week')+'本周目标<button class="btn sm primary" style="margin-left:auto" onclick="App.taskManage(\'week\')">'+icon('edit')+'</button></h4>'+
-(wtasks.length?wtasks.slice(0,5).map(t=>'<div class="li" onclick="App.editTask(\''+t.id+'\')"><span class="tag" style="background:'+(t.priority===0?'#D64545':t.priority===1?'#D9922E':'#8b95a3')+';padding:1px 6px">'+PRI[t.priority]+'</span><span class="t">'+esc(t.title)+'</span><small>'+t.dueDate.slice(5)+'</small></div>').join(''):'<div class="empty">本周暂无计划</div>')+
+'<div class="layer"><h4>'+icon('target')+'本月目标<button class="btn sm primary" style="margin-left:auto" onclick="App.goalManage()">'+icon('edit')+'</button></h4>'+
+(mgoals.length?mgoals.slice(0,4).map(g=>goalRow(g,'m')).join(''):'<div class="empty">本月暂无目标</div>')+
 '</div>'+
 '<div class="layer"><h4>'+icon('today')+'今日待办<button class="btn sm primary" style="margin-left:auto" onclick="App.taskManage(\'today\')">'+icon('edit')+'</button></h4>'+
 (ttasks.length?ttasks.slice(0,5).map(t=>{
@@ -699,6 +711,7 @@ return '<section class="card"><div class="cal-head">'+
 '<button class="btn sm" onclick="App.weekShift(1)">'+icon('arrow-r')+'</button>'+
 '<button class="btn sm" onclick="App.weekNow()">本周</button>'+
 '<button class="btn sm primary" onclick="App.weekReport()">'+icon('week')+'生成周报</button>'+
+'<button class="btn sm primary" onclick="App.monthReport()">'+icon('chart')+'本月复盘</button>'+
 '</div>'+
 '<div class="stat-grid">'+
 '<div class="stat"><b>'+days+'</b><span>打卡天数</span></div>'+
@@ -739,7 +752,45 @@ L.push('连续打卡：'+s+' 天（每周休 1 天不算断）');
 L.push('工作完成项：'+workDone.length+' 项');
 return L.join('\n');
 }
+let dlName='周报';
+function monthReport(){
+dlName='月报_'+new Date().getFullYear()+'-'+pad(new Date().getMonth()+1);
+const text=buildMonthReport();
+openModal('<h3>'+icon('chart')+'本月复盘</h3><textarea class="code" id="wr" readonly style="min-height:260px">'+esc(text)+'</textarea><div class="md-actions"><button class="btn primary" onclick="App.copyArea(this)">'+icon('copy')+'一键复制</button><button class="btn" onclick="App.downloadTxt()">'+icon('download')+'下载 .txt</button></div>');
+}
+function buildMonthReport(){
+const now=new Date();
+const ym=now.getFullYear()+'-'+pad(now.getMonth()+1);
+const ys=fmt(new Date(now.getFullYear(),now.getMonth(),1));
+const ye=fmt(new Date(now.getFullYear(),now.getMonth()+1,0));
+const chk=DB.checkins.filter(c=>c.date>=ys&&c.date<=ye).sort((a,b)=>a.date.localeCompare(b.date));
+const days=new Set(chk.map(c=>c.date)).size;
+const done=DB.tasks.filter(t=>t.status==='done'&&t.completedAt&&t.completedAt.slice(0,10)>=ys&&t.completedAt.slice(0,10)<=ye);
+const overdue=DB.tasks.filter(t=>t.status==='todo'&&t.dueDate&&t.dueDate<todayStr()).length;
+const L=[];
+L.push('【目标清单 · 本月复盘】');
+L.push('周期：'+ym);
+L.push('');
+L.push('一、本月打卡（'+days+' 天 / '+chk.length+' 条）');
+chk.forEach(c=>{const task=c.taskId?DB.tasks.find(t=>t.id===c.taskId):null;L.push('- '+c.date+' ['+c.type+']'+(task?'（'+task.title+'）':'')+' '+c.content);});
+if(!chk.length)L.push('（本月还没有打卡）');
+L.push('');
+L.push('二、本月完成项（'+done.length+' 项）');
+done.forEach(t=>L.push('- '+t.title+'：'+(t.summary||'（未填成果摘要）')));
+if(!done.length)L.push('（本月暂无完成项）');
+L.push('');
+L.push('三、目标进度');
+DB.goals.forEach(g=>{const pct=clamp(Math.round(g.current/g.target*100),0,100);L.push('- '+g.title+'：'+g.current+'/'+g.target+'（'+pct+'%）');});
+if(!DB.goals.length)L.push('（还没有目标）');
+L.push('');
+L.push('四、本月数据');
+L.push('打卡天数：'+days+' 天');
+L.push('完成项：'+done.length+' 项');
+L.push('当前逾期任务：'+overdue+' 项');
+return L.join('\n');
+}
 function weekReport(){
+dlName='周报_'+fmt(state.weekStart);
 const text=buildWeekReport();
 openModal('<h3>'+icon('week')+'周报文本</h3><textarea class="code" id="wr" readonly style="min-height:260px">'+esc(text)+'</textarea><div class="md-actions"><button class="btn primary" onclick="App.copyArea(this)">'+icon('copy')+'一键复制</button><button class="btn" onclick="App.downloadTxt()">'+icon('download')+'下载 .txt</button></div>');
 }
@@ -993,7 +1044,7 @@ try{
 const blob=new Blob([ta.value],{type:'text/plain;charset=utf-8'});
 const a=document.createElement('a');
 a.href=URL.createObjectURL(blob);
-a.download='周报_'+fmt(state.weekStart)+'.txt';
+a.download=dlName+'.txt';
 document.body.appendChild(a);a.click();a.remove();
 setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 showToast('已下载周报');
@@ -1235,7 +1286,7 @@ const App={
 nav(k){state.tab=k;render();},
 weekShift(n){state.weekStart=addDays(state.weekStart,n*7);render();},
 weekNow(){state.weekStart=startOfWeek(new Date());render();},
-weekReport:weekReport,
+weekReport:weekReport,monthReport:monthReport,buildMonthReport:buildMonthReport,
 calShift(n){const d=new Date(state.calY,state.calM+n,1);state.calY=d.getFullYear();state.calM=d.getMonth();render();},
 calToday(){state.calY=new Date().getFullYear();state.calM=new Date().getMonth();render();},
 popDay:popDay,

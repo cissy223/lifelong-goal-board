@@ -152,7 +152,7 @@ textarea{resize:vertical}
 .cal-cell.today{border-color:var(--green);background:#f2f8f1;box-shadow:0 0 0 1px var(--green)}
 .cal-d{font-size:.75rem;color:var(--muted);font-weight:600;display:block;padding:2px 4px}
 .cal-cell.today .cal-d{color:var(--green)}
-.cal-chip{font-size:.68rem;padding:1px 5px;border-radius:6px;background:var(--card2);border-left:3px solid var(--c,#4C9A6A);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
+.cal-chip{font-size:.68rem;padding:2px 6px;border-radius:6px;background:var(--c,#4C9A6A);border-left:3px solid rgba(255,255,255,.4);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff}
 .cal-more{font-size:.68rem;color:var(--muted);margin-top:2px;text-align:center}
 .cal-tabs{display:inline-flex;gap:2px;background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:2px}
 .cal-tabs button{padding:4px 10px;font-size:.8rem;border-radius:7px;color:var(--muted)}
@@ -874,7 +874,7 @@ const timed=tasks.filter(t=>t.startTime||t.endTime).sort((a,b)=>(a.startTime||'9
 const shown=all.concat(timed).slice(0,6);
 cols+='<div class="cal-wcol '+(ds===todayStr()?'today':'')+'" onclick="App.calGoDay(\''+ds+'\')">'+
 '<span class="cal-wd">周'+WEEK_CN[d.getDay()]+' '+(d.getMonth()+1)+'/'+d.getDate()+'</span>'+
-shown.map(t=>'<div class="cal-chip" style="--c:'+THEME_COLOR[t.category]+'">'+(t.startTime?'<em style="font-style:normal;color:var(--muted)">'+t.startTime+'</em> ':'')+esc(short(t.title))+'</div>').join('')+
+shown.map(t=>'<div class="cal-chip" style="--c:'+THEME_COLOR[t.category]+'">'+(t.startTime?'<em style="font-style:normal;color:rgba(255,255,255,.85)">'+t.startTime+'</em> ':'')+esc(short(t.title))+'</div>').join('')+
 (tasks.length>6?'<div class="cal-more">+'+ (tasks.length-6) +'</div>':'')+
 '</div>';
 }

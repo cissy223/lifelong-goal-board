@@ -715,7 +715,7 @@ const workDone=DB.tasks.filter(t=>t.status==='done'&&t.category==='工作'&&t.co
 const prevWork=DB.tasks.filter(t=>t.status==='done'&&t.category==='工作'&&t.completedAt&&t.completedAt.slice(0,10)>=pws&&t.completedAt.slice(0,10)<=pwe);
 const hl=chk.filter(c=>(c.content&&c.content.trim())||Number(c.amount)>0).slice(-5).reverse();
 const s=streakInfo().streak;
-const cmpRow=(label,cur,prev)=>'<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:.85rem"><span style="flex:1">'+label+'</span><span style="width:64px;text-align:right">本周 <b>'+cur+'</b></span><span style="width:64px;text-align:right">上周 <b>'+prev+'</b></span><span style="width:48px;text-align:right">'+(cur>prev?'↑'+(cur-prev):cur<prev?'↓'+(prev-cur):'—')+'</span></div>';
+const cmpRow=(label,cur,prev)=>'<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:.85rem"><span style="flex:1">'+label+'</span><span style="width:64px;text-align:right">本周 <b>'+cur+'</b></span><span style="width:64px;text-align:right">上周 <b>'+prev+'</b></span><span style="width:48px;text-align:right;font-weight:600;color:'+(cur>prev?'var(--green)':cur<prev?'var(--danger)':'inherit')+'">'+(cur>prev?'↑'+(cur-prev):cur<prev?'↓'+(prev-cur):'—')+'</span></div>';
 return '<section class="card"><div class="cal-head">'+
 '<button class="btn sm" onclick="App.weekShift(-1)">'+icon('arrow-l')+'</button>'+
 '<b>'+wStart+' ~ '+wEnd+'</b>'+

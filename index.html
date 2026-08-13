@@ -677,7 +677,7 @@ return '<section class="stat-grid">'+
 '<div class="stat"><b>'+DB.checkins.length+'</b><span>累计打卡</span></div>'+
 '</section>'+
 '<section class="sec"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('board')+'目标看板</h2>'+
-(DB.goals.length?DB.goals.map(goalCard).join(''):'<div class="empty">还没有目标，点下方「新增目标」开始</div><button class="btn primary block" style="margin-top:8px" onclick="App.goalModal(\'\')">'+icon('plus')+'新增目标</button>')+'</section>';
+(DB.goals.length?DB.goals.map(goalCard).join(''):'<div class="empty">还没有目标</div><button class="btn primary block" style="margin-top:8px" onclick="App.goalModal(\'\')">'+icon('plus')+'新增目标</button>')+'</section>';
 }
 function viewWeek(){
 const ws=state.weekStart,wStart=fmt(ws),wEnd=fmt(addDays(ws,6));

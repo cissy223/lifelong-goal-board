@@ -509,7 +509,6 @@ const od=t.status==='todo'&&t.dueDate&&t.dueDate<T?daysBetween(t.dueDate,T):0;
 const odDays=od>0?od+' 天':'';
 const pp=t.period?periodProgress(t):t.progress;
 const doneToday=!!(t.period&&(t.doneDates||[]).includes(T));
-const plannedToday=!!(t.period&&isPeriodDay(t,T));
 const goalTag=t.goalId?((DB.goals.find(x=>x.id===t.goalId)||{}).title||''):'';
 return '<div class="todo '+(od>0?'overdue':'')+(doneToday?' today-done':'')+'" id="tk-'+t.id+'">'+
 '<div class="t-main">'+
@@ -531,9 +530,7 @@ return '<div class="todo '+(od>0?'overdue':'')+(doneToday?' today-done':'')+'" i
 (t.period?'<div class="bar" style="margin-top:6px"><i style="width:'+clamp(pp,0,100)+'%"></i></div>':'')+
 '</div>'+
 '<div class="t-actions">'+
-(t.period
-?(doneToday?'<button class="btn" title="撤销今日完成" onclick="App.undoDone(\''+t.id+'\')">'+icon('refresh')+'撤销</button>':(plannedToday?'<button class="btn primary" title="今日完成" onclick="App.done(\''+t.id+'\')">'+icon('check')+'完成</button>':'<button class="btn" title="不在计划日，点击将整项完成" onclick="App.done(\''+t.id+'\')">'+icon('check')+'完成</button>'))
-:'<button class="btn primary" title="一键完成" onclick="App.done(\''+t.id+'\')">'+icon('check')+'完成</button>')+
+(t.period&&doneToday?'<button class="btn" title="撤销今日完成" onclick="App.undoDone(\''+t.id+'\')">'+icon('refresh')+'撤销</button>':'')+
 (t.period?'':'<button class="btn" title="顺延到明天" onclick="App.defer(\''+t.id+'\')">'+icon('defer')+'顺延</button>')+
 '<button class="btn" title="打卡成果" onclick="App.checkinModal(\''+t.id+'\')">'+icon('spark')+'打卡</button>'+
 '<button class="btn" title="编辑" onclick="App.editTask(\''+t.id+'\')">'+icon('edit')+'</button>'+
@@ -823,7 +820,7 @@ const tasks=tasksOnDay(ds);
 const html='<div class="pop-t">'+ds+' · 周'+WEEK_CN[parseD(ds).getDay()]+'</div>'+
 (tasks.length?tasks.map(t=>'<div class="pop-i"><span class="dot" style="background:'+THEME_COLOR[t.category]+';margin-top:5px"></span>'+
 '<div style="flex:1;min-width:0"><b>'+esc(t.title)+'</b><small>'+(t.status==='done'?'已完成':(t.period?periodWeekdays(t)+' · '+t.startDate+'~'+t.dueDate:'截止 '+t.dueDate))+'</small></div>'+
-(t.status==='todo'?'<div class="pop-a">'+(t.period&&(t.doneDates||[]).includes(ds)?'<button title="撤销今日" onclick="App.undoDone(\''+t.id+'\')">'+icon('refresh')+'</button>':'<button title="完成" onclick="App.done(\''+t.id+'\')">'+icon('check')+'</button>')+(t.period?'':'<button title="顺延" onclick="App.defer(\''+t.id+'\')">'+icon('defer')+'</button>')+'<button title="打卡验证" onclick="App.checkinModal(\''+t.id+'\')">'+icon('spark')+'</button></div>':'')+
+(t.status==='todo'?'<div class="pop-a">'+(t.period&&(t.doneDates||[]).includes(ds)?'<button title="撤销今日" onclick="App.undoDone(\''+t.id+'\')">'+icon('refresh')+'</button>':'')+(t.period?'':'<button title="顺延" onclick="App.defer(\''+t.id+'\')">'+icon('defer')+'</button>')+'<button title="打卡验证" onclick="App.checkinModal(\''+t.id+'\')">'+icon('spark')+'</button></div>':'')+
 '</div>').join(''):'<div class="pop-empty">这一天没有计划</div>')+
 '<button class="btn primary block" style="margin-top:8px" onclick="App.addTask(\''+ds+'\')">'+icon('plus')+'新增计划</button>';
 openPop(el,html);
@@ -978,20 +975,15 @@ function checkinModal(taskId){
 const t=taskId?DB.tasks.find(x=>x.id===taskId):null;
 openModal('<h3>'+icon('spark')+'打卡成果</h3>'+
 '<label>关联任务（可选）</label><select id="ck-task" onchange="App.ckTaskPick()"><option value="">无（自由打卡）</option>'+DB.tasks.filter(x=>x.status==='todo').map(x=>'<option value="'+x.id+'" '+(x.id===taskId?'selected':'')+'>'+esc(x.title)+'</option>').join('')+'</select>'+
-'<label>今天做了什么？输入后自动识别类型</label><textarea id="ck-content" rows="3" placeholder="例如：精听英语 30 分钟，完成口语录音复盘…" oninput="App.detectCk(this)"></textarea>'+
 '<label>类型（可手动修改）</label><div id="ck-type" style="margin-top:4px">'+Object.keys(TYPE_COLOR).map(k=>'<label class="tradio"><input type="radio" name="ck-t" value="'+k+'" '+(k==='通用'?'checked':'')+'><span class="dot" style="background:'+TYPE_COLOR[k]+'"></span>'+k+'</label>').join('')+'</div>'+
-'<div id="ck-sr-wrap" style="display:'+(t?'block':'none')+'">'+
-'<label>成果摘要</label><textarea id="ck-sum" rows="2" placeholder="完成后的产出/结果">'+esc(t?t.summary||'':'')+'</textarea>'+
+'<label>成果摘要</label><textarea id="ck-sum" rows="3" placeholder="例如：精听英语 30 分钟，完成口语录音复盘…" oninput="App.detectCk(this)">'+esc(t?t.summary||'':'')+'</textarea>'+
 '<label>复盘</label><textarea id="ck-rev" rows="2" placeholder="经验/教训/下一步">'+esc(t?t.review||'':'')+'</textarea>'+
-'</div>'+
 '<div class="md-actions"><button class="btn" onclick="App.closeModal()">取消</button><button class="btn primary" onclick="App.submitCheckin()">'+icon('spark')+'生成复盘</button></div>');
-setTimeout(()=>{const el=$('#ck-content');if(el)el.focus();},50);
+setTimeout(()=>{const el=$('#ck-sum');if(el)el.focus();},50);
 }
 function ckTaskPick(){
 const id=$('#ck-task').value;
 const t=id?DB.tasks.find(x=>x.id===id):null;
-const wrap=$('#ck-sr-wrap');
-if(wrap)wrap.style.display=t?'block':'none';
 const s=$('#ck-sum'),r=$('#ck-rev');
 if(s)s.value=t?t.summary||'':'';
 if(r)r.value=t?t.review||'':'';
@@ -1003,16 +995,18 @@ const r=document.querySelector('input[name="ck-t"][value="'+type+'"]');
 if(r)r.checked=true;
 }
 function submitCheckin(){
-const content=$('#ck-content').value.trim();
-if(!content){showToast('请先填写打卡内容');return;}
+const content=$('#ck-sum').value.trim();
+if(!content){showToast('请先填写成果摘要');return;}
 const type=(document.querySelector('input[name="ck-t"]:checked')||{}).value||'通用';
 const taskId=$('#ck-task').value;
 const hits=matchThemes(content);
 const c={id:uid(),date:todayStr(),taskId:taskId||null,type:type,content:content,evaluation:makeEval(type,content,hits),suggestions:makeSuggestions(hits),themes:hits.map(h=>h.theme),cross:makeCross(hits),createdAt:Date.now()};
 DB.checkins.push(c);
-if(taskId){const t=DB.tasks.find(x=>x.id===taskId);if(t){t.checkins=t.checkins||[];t.checkins.push(c.id);const sr=$('#ck-sum').value.trim();const rr=$('#ck-rev').value.trim();if(sr)t.summary=sr;t.review=rr||(c.evaluation+(c.cross?'\n'+c.cross:''));t.updatedAt=Date.now();}}
+let doneNote='';
+if(taskId){const t=DB.tasks.find(x=>x.id===taskId);if(t){t.checkins=t.checkins||[];t.checkins.push(c.id);const sr=$('#ck-sum').value.trim();const rr=$('#ck-rev').value.trim();if(sr)t.summary=sr;t.review=rr||(c.evaluation+(c.cross?'\n'+c.cross:''));if(t.status==='todo'){if(t.period&&isPeriodDay(t,todayStr())){const T=todayStr();if(!(t.doneDates||[]).includes(T)){t.doneDates=(t.doneDates||[]).concat(T);if(t.goalId)goalAdd(t.goalId,1);}settlePeriods();doneNote='今日已完成，明天继续';}else{t.status='done';t.progress=100;t.completedAt=nowStamp();if(t.goalId)goalAdd(t.goalId,1);doneNote='任务「'+t.title+'」已标记完成';}}t.updatedAt=Date.now();}}
 save();render();
 openModal('<h3>'+icon('spark')+'复盘已生成</h3>'+
+(doneNote?'<div style="margin-bottom:8px;font-size:.82rem;color:var(--green);font-weight:600">'+icon('check')+' '+esc(doneNote)+'</div>':'')+
 '<div class="eval"><b>'+c.type+' · '+(c.themes.length?c.themes.join(' / '):'未命中主题')+'</b><p>'+esc(c.evaluation)+'</p></div>'+
 '<div class="eval"><b>发散建议</b>'+c.suggestions.map(s=>'<p>· '+esc(s)+'</p>').join('')+'</div>'+
 (c.cross?'<div class="eval cross"><b>跨主题交叉分析</b><p>'+esc(c.cross)+'</p></div>':'')+

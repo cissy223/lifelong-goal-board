@@ -7,8 +7,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="终身目标管理台">
-<title>终身目标管理台</title>
+<meta name="apple-mobile-web-app-title" content="目标清单">
+<title>目标清单</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='%234C9A6A'/%3E%3Ccircle cx='12' cy='12' r='4' fill='%23EDF1E6'/%3E%3C/svg%3E">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -264,12 +264,12 @@ textarea{resize:vertical}
 <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18.5a4.5 4.5 0 0 1-.4-8.98 6 6 0 0 1 11.8 1.5 3.75 3.75 0 0 1 .1 7.48z"/></symbol>
 </svg>
 <div id="mhead">
-<div class="logo"><span class="lg"><svg class="ic"><use href="#i-logo"/></svg></span><div><b>终身目标管理台</b></div></div>
+<div class="logo"><span class="lg"><svg class="ic"><use href="#i-logo"/></svg></span><div><b>目标清单</b></div></div>
 <button class="btn primary sm" onclick="App.checkinModal('')"><svg class="ic"><use href="#i-spark"/></svg>打卡</button>
 </div>
 <div id="app">
 <aside id="sidebar">
-<div class="logo"><span class="lg"><svg class="ic"><use href="#i-logo"/></svg></span><div><b>终身目标管理台</b><small>求上进 · 看得见</small></div></div>
+<div class="logo"><span class="lg"><svg class="ic"><use href="#i-logo"/></svg></span><div><b>目标清单</b><small>求上进 · 看得见</small></div></div>
 <nav id="nav"></nav>
 <div class="card"><h4><svg class="ic"><use href="#i-fire"/></svg>今日数据</h4><div id="side-stat"></div></div>
 </aside>
@@ -527,7 +527,7 @@ const s=streakInfo().streak;
 const sb=DB.settings.rewards.filter(r=>r.track==='streak').map(r=>({name:r.name,icon:r.icon,cur:s,threshold:r.threshold,unit:'天'}));
 const gb=DB.goals.map(g=>({name:g.title+' · 圆满达成',icon:'flag',cur:Math.round(g.current/g.target*100),threshold:100,unit:'%'}));
 const all=sb.concat(gb);
-return '<section class="card"><h2>'+icon('star')+'奖励勋章 <span style="font-size:.72rem;color:var(--muted);font-weight:400">连续打卡 + 目标进度 双轨</span></h2><div class="badges">'+
+return '<section class="card"><h2>'+icon('star')+'奖励勋章</h2><div class="badges">'+
 all.map(b=>{
 const pct=clamp(Math.round(b.cur/b.threshold*100),0,100);
 const on=pct>=100;
@@ -696,7 +696,7 @@ const days=new Set(chk.map(c=>c.date)).size;
 const workDone=DB.tasks.filter(t=>t.status==='done'&&t.category==='工作'&&t.completedAt&&t.completedAt.slice(0,10)>=wStart&&t.completedAt.slice(0,10)<=wEnd);
 const s=streakInfo().streak;
 const L=[];
-L.push('【终身目标管理台 · 周报】');
+L.push('【目标清单 · 周报】');
 L.push('周期：'+wStart+' ~ '+wEnd);
 L.push('');
 L.push('一、本周打卡（'+days+' 天 / '+chk.length+' 条）');

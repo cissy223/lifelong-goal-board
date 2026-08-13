@@ -304,7 +304,7 @@ const THEMES=['学习','健康','工作','理财','人际','兴趣'];
 const THEME_COLOR={'学习':'#3E7CB1','健康':'#4C9A6A','工作':'#C08A3E','理财':'#8E6BBF','人际':'#D9706C','兴趣':'#D1789F'};
 const TYPE_COLOR={'感悟':'#3E7CB1','视频链接':'#8E6BBF','成品':'#4C9A6A','通用':'#C08A3E'};
 const PRI=['重要且紧急','重要不紧急','不重要紧急','不重要不紧急'];
-const PRI_BG=['rgba(214,69,69,.24)','rgba(217,146,46,.28)','rgba(228,161,27,.28)','rgba(139,149,163,.28)'];
+const PRI_BG=['rgba(214,69,69,.24)','rgba(217,146,46,.28)','rgba(62,124,177,.28)','rgba(139,149,163,.28)'];
 const WEEK_CN=['日','一','二','三','四','五','六'];
 const PRAISE=['真棒！','稳住了！','漂亮！','求上进！','又进一步！','优秀！'];
 const TABS=[['today','今日','today'],['board','看板','board'],['week','周报','week'],['cal','日历','cal'],['me','我的','me']];
@@ -1243,7 +1243,7 @@ function taskManage(mode){
 const ws=state.weekStart,we=addDays(ws,6);
 const list=DB.tasks.filter(t=>t.status==='todo'&&(mode==='week'?(t.dueDate&&t.dueDate>=fmt(ws)&&t.dueDate<=fmt(we)):dueOn(t,todayStr()))).sort((a,b)=>(a.priority-b.priority)||(a.dueDate||'').localeCompare(b.dueDate||''));
 openModal('<h3>'+icon(mode==='week'?'week':'today')+'任务管理</h3>'+
-(list.length?list.map(t=>'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line);cursor:pointer" onclick="App.editTask(\''+t.id+'\')"><span class="tag" style="background:'+(t.priority===0?'#D64545':t.priority===1?'#D9922E':t.priority===2?'#E4A11B':'#8b95a3')+';padding:1px 6px">'+PRI[t.priority]+'</span><div style="flex:1;min-width:0"><b style="font-size:.88rem">'+esc(t.title)+'</b><div style="font-size:.72rem;color:var(--muted)">'+(t.dueDate||'')+(t.period?' · '+periodWeekdays(t):'')+'</div></div><button class="btn sm" onclick="event.stopPropagation();App.editTask(\''+t.id+'\')">'+icon('edit')+'</button></div>').join(''):'<div class="empty">暂无任务</div>')+
+(list.length?list.map(t=>'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line);cursor:pointer" onclick="App.editTask(\''+t.id+'\')"><span class="tag" style="background:'+(t.priority===0?'#D64545':t.priority===1?'#D9922E':t.priority===2?'#3E7CB1':'#8b95a3')+';padding:1px 6px">'+PRI[t.priority]+'</span><div style="flex:1;min-width:0"><b style="font-size:.88rem">'+esc(t.title)+'</b><div style="font-size:.72rem;color:var(--muted)">'+(t.dueDate||'')+(t.period?' · '+periodWeekdays(t):'')+'</div></div><button class="btn sm" onclick="event.stopPropagation();App.editTask(\''+t.id+'\')">'+icon('edit')+'</button></div>').join(''):'<div class="empty">暂无任务</div>')+
 '<button class="btn primary block" style="margin-top:8px" onclick="App.addTask(\'\')">'+icon('plus')+'新增计划</button>'+
 '<div class="md-actions"><button class="btn" onclick="App.closeModal()">关闭</button></div>');
 }

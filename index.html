@@ -372,7 +372,7 @@ completedAt:t.completedAt||null,updatedAt:t.updatedAt||Date.now()
 })),
 checkins:(Array.isArray(d.checkins)?d.checkins:[]).map(c=>({
 id:c.id||uid(),date:String(c.date||todayStr()),taskId:c.taskId||null,type:['感悟','视频链接','成品','通用'].includes(c.type)?c.type:'通用',
-content:String(c.content||''),evaluation:String(c.evaluation||''),suggestions:Array.isArray(c.suggestions)?c.suggestions:[],
+content:String(c.content||''),amount:Number(c.amount)||0,unit:String(c.unit||''),evaluation:String(c.evaluation||''),suggestions:Array.isArray(c.suggestions)?c.suggestions:[],
 themes:Array.isArray(c.themes)?c.themes:[],cross:String(c.cross||''),createdAt:c.createdAt||Date.now()
 })),
 events:(Array.isArray(d.events)?d.events:[]).map(e=>({id:e.id||uid(),title:String(e.title||'未命名事件'),date:String(e.date||todayStr()),done:!!e.done,createdAt:e.createdAt||Date.now(),updatedAt:e.updatedAt||Date.now()})),
@@ -657,13 +657,13 @@ const daysLeft=Math.max(0,total-elapsed);
 const planned=daysLeft?rem/daysLeft:rem/7;
 const pace=streakInfo().activeDays7/7;
 const rate=Math.max(planned,pace);
-const est=rate>0?fmt(addDays(new Date(),Math.ceil(rem/rate))):null;
 const risk=pct<expPct-20?'danger':pct<expPct-8?'warn':'ok';
 const riskTip=risk==='danger'?'进度落后于计划（应到 '+expPct+'%）。建议把目标拆小、降低每日量，先找回节奏。':risk==='warn'?'进度略低于计划（应到 '+expPct+'%）。本周加一点量就能追回来。':'';
 const doneTasks=DB.tasks.filter(t=>t.goalId===g.id&&t.status==='done');
 const linkTasks=DB.tasks.filter(t=>t.goalId===g.id);
 const linkTodo=linkTasks.filter(t=>t.status==='todo').length;
 const linkDone=linkTasks.filter(t=>t.status==='done').length;
+const recentCk=DB.checkins.filter(c=>(c.themes||[]).includes(g.theme)&&c.date>=fmt(addDays(new Date(),-6))&&c.date<=todayStr()).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,4);
 return '<section class="card goal '+(risk!=='ok'?risk:'')+'">'+
 '<div class="g-head">'+ring(pct,THEME_COLOR[g.theme],g.current,g.target,g.unit)+
 '<div class="g-info"><div class="g-tags"><span class="tag" style="background:'+THEME_COLOR[g.theme]+'">'+g.theme+'</span>'+
@@ -671,13 +671,23 @@ return '<section class="card goal '+(risk!=='ok'?risk:'')+'">'+
 (risk==='warn'?'<span class="tag warn">'+icon('alert')+'略低于计划</span>':'')+'<button class="btn sm" title="记一次，进度+1" onclick="App.goalPlus(\''+g.id+'\')">+1</button><button class="btn sm" style="margin-left:auto" onclick="App.editGoal(\''+g.id+'\')">'+icon('edit')+'编辑</button>'+
 '</div><h3>'+esc(g.title)+'</h3><p>'+esc(g.desc)+'</p>'+
 '<div class="g-meta">'+
-'<span>'+icon('target')+'建议每日量 <b>'+rate.toFixed(1)+' '+g.unit+'</b></span>'+
-'<span>'+icon('flag')+'预计完成 <b>'+(est||'长期')+'</b></span>'+
+'<span>'+icon('flag')+'截止 <b>'+(g.endDate||'长期')+'</b>'+(g.endDate?'（剩 '+daysLeft+' 天）':'')+'</span>'+
+'<span>'+icon('target')+'日均 <b>'+rate.toFixed(1)+' '+g.unit+'</b></span>'+
 '<span>'+icon('fire')+'连续 <b>'+streakInfo().streak+' 天</b></span>'+
 '</div></div></div>'+
 (riskTip?'<div style="margin-top:10px;font-size:.8rem;color:'+(risk==='danger'?'var(--danger)':'var(--warn)')+'">'+icon('alert')+' '+riskTip+'</div>':'')+
 '<div class="g-bars"><div class="g-bar-title">近 7 天打卡（'+g.theme+'）</div>'+bars7(g.theme)+'</div>'+
 '<div style="margin-top:10px;font-size:.8rem;color:var(--muted)">'+icon('target')+'关联任务 '+linkTasks.length+' 项（进行中 '+linkTodo+' / 已完成 '+linkDone+'）</div>'+
+'<div style="margin-top:10px"><div style="font-size:.8rem;font-weight:600;margin-bottom:4px">'+icon('fire')+'最近记录</div>'+
+(recentCk.length?recentCk.map(c=>{
+const amt=Number(c.amount)||0;
+const stat=amt>0?'+'+amt+(c.unit||''):'';
+const cont=String(c.content||'').trim();
+const d=parseD(c.date);
+return '<div style="display:flex;gap:6px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:.8rem"><span style="flex:none;color:var(--muted)">'+mmdd(c.date)+' 周'+WEEK_CN[d.getDay()]+'</span>'+
+'<span class="dot" style="background:'+TYPE_COLOR[c.type]+';margin-top:6px"></span>'+
+'<div style="flex:1;min-width:0"><b style="font-size:.8rem;color:'+TYPE_COLOR[c.type]+'">'+c.type+'</b>'+(stat?' <span style="color:var(--green);font-weight:600">'+stat+'</span>':'')+(cont?'<div style="color:var(--muted);font-size:.75rem">'+short(cont)+'</div>':'')+'</div></div>';
+}).join(''):'<div class="empty">最近 7 天还没有该主题的打卡</div>')+'</div>'+
 '<div class="g-done">'+(doneTasks.length?doneTasks.map(t=>'<div class="g-done-i">'+icon('smile')+'<span>'+esc(t.title)+'</span><em>'+PRAISE[(t.title||'').length%PRAISE.length]+'</em></div>').join(''):'<div class="empty">还没有完成的关联任务</div>')+'</div>'+
 '</section>';
 }
@@ -696,10 +706,16 @@ return '<section class="stat-grid">'+
 }
 function viewWeek(){
 const ws=state.weekStart,wStart=fmt(ws),wEnd=fmt(addDays(ws,6));
+const pws=fmt(addDays(ws,-7)),pwe=fmt(addDays(ws,-1));
 const chk=DB.checkins.filter(c=>c.date>=wStart&&c.date<=wEnd).sort((a,b)=>a.date.localeCompare(b.date));
 const days=new Set(chk.map(c=>c.date)).size;
+const prevChk=DB.checkins.filter(c=>c.date>=pws&&c.date<=pwe);
+const prevDays=new Set(prevChk.map(c=>c.date)).size;
 const workDone=DB.tasks.filter(t=>t.status==='done'&&t.category==='工作'&&t.completedAt&&t.completedAt.slice(0,10)>=wStart&&t.completedAt.slice(0,10)<=wEnd);
+const prevWork=DB.tasks.filter(t=>t.status==='done'&&t.category==='工作'&&t.completedAt&&t.completedAt.slice(0,10)>=pws&&t.completedAt.slice(0,10)<=pwe);
+const hl=chk.filter(c=>(c.content&&c.content.trim())||Number(c.amount)>0).slice(-5).reverse();
 const s=streakInfo().streak;
+const cmpRow=(label,cur,prev)=>'<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:.85rem"><span style="flex:1">'+label+'</span><span style="width:64px;text-align:right">本周 <b>'+cur+'</b></span><span style="width:64px;text-align:right">上周 <b>'+prev+'</b></span><span style="width:48px;text-align:right">'+(cur>prev?'↑'+(cur-prev):cur<prev?'↓'+(prev-cur):'—')+'</span></div>';
 return '<section class="card"><div class="cal-head">'+
 '<button class="btn sm" onclick="App.weekShift(-1)">'+icon('arrow-l')+'</button>'+
 '<b>'+wStart+' ~ '+wEnd+'</b>'+
@@ -714,22 +730,30 @@ return '<section class="card"><div class="cal-head">'+
 '<div class="stat"><b>'+workDone.length+'</b><span>工作完成项</span></div>'+
 '<div class="stat"><b>'+s+'</b><span>连续打卡</span></div>'+
 '</div></section>'+
+'<section class="sec"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('star')+'本周成果亮点 <span style="background:var(--amber);color:#fff;border-radius:99px;font-size:.72rem;padding:1px 9px">'+hl.length+'</span></h2>'+
+'<div class="card">'+(hl.length?hl.map(c=>'<div style="padding:7px 0;border-bottom:1px dashed var(--line);font-size:.85rem"><b>'+esc(ckLine(c))+'</b><span style="color:var(--muted);font-size:.75rem"> · '+mmdd(c.date)+'</span></div>').join(''):'<div class="empty">本周还没有亮点</div>')+'</div></section>'+
 '<section class="sec"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('fire')+'打卡记录 <span style="background:var(--green);color:#fff;border-radius:99px;font-size:.72rem;padding:1px 9px">'+chk.length+'</span></h2>'+
 '<div class="card">'+(chk.length?chk.map(c=>{
 const task=c.taskId?DB.tasks.find(t=>t.id===c.taskId):null;
 return '<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:.85rem"><span style="flex:none;color:var(--muted)">'+c.date.slice(5)+'</span>'+
 '<span class="dot" style="background:'+TYPE_COLOR[c.type]+';margin-top:6px"></span>'+
-'<div style="flex:1;min-width:0"><b style="font-size:.82rem;color:'+TYPE_COLOR[c.type]+'">'+c.type+'</b>'+(task?' <span style="color:var(--muted);font-size:.75rem">· '+esc(task.title)+'</span>':'')+
+'<div style="flex:1;min-width:0"><b style="font-size:.82rem;color:'+TYPE_COLOR[c.type]+'">'+c.type+'</b>'+(Number(c.amount)>0?' <span style="color:var(--green);font-weight:600">+'+c.amount+(c.unit||'')+'</span>':'')+(task?' <span style="color:var(--muted);font-size:.75rem">· '+esc(task.title)+'</span>':'')+
 '<div style="color:var(--ink);font-size:.82rem">'+esc(c.content)+'</div></div></div>';
 }).join(''):'<div class="empty">本周还没有打卡</div>')+'</div></section>'+
 '<section class="sec"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('box')+'工作完成项 <span style="background:var(--amber);color:#fff;border-radius:99px;font-size:.72rem;padding:1px 9px">'+workDone.length+'</span></h2>'+
-'<div class="card">'+(workDone.length?workDone.map(t=>'<div style="padding:7px 0;border-bottom:1px dashed var(--line)"><b style="font-size:.88rem">'+esc(t.title)+'</b>'+(t.summary?'<div style="color:var(--muted);font-size:.8rem;margin-top:2px">成果：'+esc(t.summary)+'</div>':'')+'</div>').join(''):'<div class="empty">本周暂无完成的工作项</div>')+'</div></section>';
+'<div class="card">'+(workDone.length?workDone.map(t=>'<div style="padding:7px 0;border-bottom:1px dashed var(--line)"><b style="font-size:.88rem">'+esc(t.title)+'</b>'+(t.summary?'<div style="color:var(--muted);font-size:.8rem;margin-top:2px">成果：'+esc(t.summary)+'</div>':'')+'</div>').join(''):'<div class="empty">本周暂无完成的工作项</div>')+'</div></section>'+
+'<section class="sec"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('chart')+'上周 vs 本周</h2><div class="card">'+cmpRow('打卡天数',days,prevDays)+cmpRow('打卡条数',chk.length,prevChk.length)+cmpRow('完成项',workDone.length,prevWork.length)+'</div></section>';
 }
 function buildWeekReport(){
 const ws=state.weekStart,wStart=fmt(ws),wEnd=fmt(addDays(ws,6));
 const chk=DB.checkins.filter(c=>c.date>=wStart&&c.date<=wEnd).sort((a,b)=>a.date.localeCompare(b.date));
 const days=new Set(chk.map(c=>c.date)).size;
 const workDone=DB.tasks.filter(t=>t.status==='done'&&t.category==='工作'&&t.completedAt&&t.completedAt.slice(0,10)>=wStart&&t.completedAt.slice(0,10)<=wEnd);
+const pws=fmt(addDays(ws,-7)),pwe=fmt(addDays(ws,-1));
+const prevChk=DB.checkins.filter(c=>c.date>=pws&&c.date<=pwe);
+const prevDays=new Set(prevChk.map(c=>c.date)).size;
+const prevWork=DB.tasks.filter(t=>t.status==='done'&&t.category==='工作'&&t.completedAt&&t.completedAt.slice(0,10)>=pws&&t.completedAt.slice(0,10)<=pwe);
+const hl=chk.filter(c=>(c.content&&c.content.trim())||Number(c.amount)>0).slice(-5).reverse();
 const s=streakInfo().streak;
 const L=[];
 L.push('【目标清单 · 周报】');
@@ -741,10 +765,15 @@ L.push('');
 L.push('二、本周工作完成项（'+workDone.length+' 项）');
 workDone.forEach(t=>L.push('- '+t.title+'：'+(t.summary||'（未填成果摘要）')));
 L.push('');
-L.push('三、本周数据');
+L.push('三、本周成果亮点（'+hl.length+' 条）');
+hl.forEach(c=>L.push('- '+ckLine(c)+'（'+c.date+'）'));
+if(!hl.length)L.push('（本周暂无亮点）');
+L.push('');
+L.push('四、本周数据');
 L.push('打卡天数：'+days+' 天');
 L.push('连续打卡：'+s+' 天（每周休 1 天不算断）');
 L.push('工作完成项：'+workDone.length+' 项');
+L.push('环比（上周→本周）：打卡天数 '+prevDays+'→'+days+'、打卡条数 '+prevChk.length+'→'+chk.length+'、完成项 '+prevWork.length+'→'+workDone.length);
 return L.join('\n');
 }
 let dlName='周报';
@@ -976,6 +1005,8 @@ openModal('<h3>'+icon('spark')+'打卡成果</h3>'+
 '<label>关联任务（可选）</label><select id="ck-task" onchange="App.ckTaskPick()"><option value="">无（自由打卡）</option>'+DB.tasks.filter(x=>x.status==='todo').map(x=>'<option value="'+x.id+'" '+(x.id===taskId?'selected':'')+'>'+esc(x.title)+'</option>').join('')+'</select>'+
 '<label>类型（可手动修改）</label><div id="ck-type" style="margin-top:4px">'+Object.keys(TYPE_COLOR).map(k=>'<label class="tradio"><input type="radio" name="ck-t" value="'+k+'" '+(k==='通用'?'checked':'')+'><span class="dot" style="background:'+TYPE_COLOR[k]+'"></span>'+k+'</label>').join('')+'</div>'+
 '<label>成果摘要</label><textarea id="ck-sum" rows="3" placeholder="例如：精听英语 30 分钟，完成口语录音复盘…" oninput="App.detectCk(this)">'+esc(t?t.summary||'':'')+'</textarea>'+
+'<div style="display:flex;gap:10px"><div style="flex:1"><label>完成量</label><input type="number" id="ck-amount" min="0" placeholder="如 30"></div>'+
+'<div style="flex:1"><label>单位</label><input id="ck-unit" maxlength="4" placeholder="页/个/次"></div></div>'+
 '<label>复盘</label><textarea id="ck-rev" rows="2" placeholder="经验/教训/下一步">'+esc(t?t.review||'':'')+'</textarea>'+
 '<div class="md-actions"><button class="btn" onclick="App.closeModal()">取消</button><button class="btn primary" onclick="App.submitCheckin()">'+icon('spark')+'生成复盘</button></div>');
 setTimeout(()=>{const el=$('#ck-sum');if(el)el.focus();},50);
@@ -987,6 +1018,12 @@ const s=$('#ck-sum'),r=$('#ck-rev');
 if(s)s.value=t?t.summary||'':'';
 if(r)r.value=t?t.review||'':'';
 }
+function ckLine(c){
+const amt=Number(c&&c.amount)||0;
+if(amt>0)return '+'+amt+(c.unit||'');
+return short(String(c&&c.content||'').trim());
+}
+function mmdd(ds){const d=parseD(ds);return (d.getMonth()+1)+'月'+d.getDate()+'日';}
 function detectCk(el){
 if(!el||!el.value)return;
 const type=detectType(el.value);
@@ -999,7 +1036,9 @@ if(!content){showToast('请先填写成果摘要');return;}
 const type=(document.querySelector('input[name="ck-t"]:checked')||{}).value||'通用';
 const taskId=$('#ck-task').value;
 const hits=matchThemes(content);
-const c={id:uid(),date:todayStr(),taskId:taskId||null,type:type,content:content,evaluation:makeEval(type,content,hits),suggestions:makeSuggestions(hits),themes:hits.map(h=>h.theme),cross:makeCross(hits),createdAt:Date.now()};
+const amount=Math.max(0,Number($('#ck-amount').value)||0);
+const unit=$('#ck-unit').value.trim();
+const c={id:uid(),date:todayStr(),taskId:taskId||null,type:type,content:content,amount:amount,unit:unit,evaluation:makeEval(type,content,hits),suggestions:makeSuggestions(hits),themes:hits.map(h=>h.theme),cross:makeCross(hits),createdAt:Date.now()};
 DB.checkins.push(c);
 let doneNote='';
 if(taskId){const t=DB.tasks.find(x=>x.id===taskId);if(t){t.checkins=t.checkins||[];t.checkins.push(c.id);const sr=$('#ck-sum').value.trim();const rr=$('#ck-rev').value.trim();if(sr)t.summary=sr;t.review=rr||(c.evaluation+(c.cross?'\n'+c.cross:''));if(t.status==='todo'){if(t.period&&isPeriodDay(t,todayStr())){const T=todayStr();if(!(t.doneDates||[]).includes(T)){t.doneDates=(t.doneDates||[]).concat(T);if(t.goalId)goalAdd(t.goalId,1);}settlePeriods();doneNote='今日已完成，明天继续';}else{t.status='done';t.progress=100;t.completedAt=nowStamp();if(t.goalId)goalAdd(t.goalId,1);doneNote='任务「'+t.title+'」已标记完成';}}t.updatedAt=Date.now();}}

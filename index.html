@@ -632,11 +632,11 @@ return '<svg class="ring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="'+r+'
 '<text x="50" y="47" text-anchor="middle" class="ring-n">'+pct+'%</text>'+
 '<text x="50" y="63" text-anchor="middle" class="ring-l">'+cur+'/'+target+' '+unit+'</text></svg>';
 }
-function bars7(theme){
+function bars7(theme,goalId){
 const days=[];
 for(let i=6;i>=0;i--){
 const ds=fmt(addDays(new Date(),-i));
-const n=DB.checkins.filter(c=>c.date===ds&&(!theme||(c.themes&&c.themes.includes(theme))||(!c.themes&&matchThemes(c.content).some(h=>h.theme===theme)))).length;
+const n=DB.checkins.filter(c=>c.date===ds&&((!theme)||(c.themes&&c.themes.includes(theme))||(!c.themes&&matchThemes(c.content).some(h=>h.theme===theme))||(goalId&&c.taskId&&(DB.tasks.find(t=>t.id===c.taskId)||{}).goalId===goalId))).length;
 days.push({ds,n,w:(parseD(ds).getMonth()+1)+'/'+parseD(ds).getDate()});
 }
 const max=Math.max(1,...days.map(d=>d.n));
@@ -663,7 +663,7 @@ const doneTasks=DB.tasks.filter(t=>t.goalId===g.id&&t.status==='done');
 const linkTasks=DB.tasks.filter(t=>t.goalId===g.id);
 const linkTodo=linkTasks.filter(t=>t.status==='todo').length;
 const linkDone=linkTasks.filter(t=>t.status==='done').length;
-const recentCk=DB.checkins.filter(c=>(c.themes||[]).includes(g.theme)&&c.date>=fmt(addDays(new Date(),-6))&&c.date<=todayStr()).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,4);
+const recentCk=DB.checkins.filter(c=>c.date>=fmt(addDays(new Date(),-6))&&c.date<=todayStr()&&((c.themes||[]).includes(g.theme)||(c.taskId&&(DB.tasks.find(t=>t.id===c.taskId)||{}).goalId===g.id))).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,4);
 return '<section class="card goal '+(risk!=='ok'?risk:'')+'">'+
 '<div class="g-head">'+ring(pct,THEME_COLOR[g.theme],g.current,g.target,g.unit)+
 '<div class="g-info"><div class="g-tags"><span class="tag" style="background:'+THEME_COLOR[g.theme]+'">'+g.theme+'</span>'+
@@ -676,7 +676,7 @@ return '<section class="card goal '+(risk!=='ok'?risk:'')+'">'+
 '<span>'+icon('fire')+'连续 <b>'+streakInfo().streak+' 天</b></span>'+
 '</div></div></div>'+
 '<div class="card" style="margin-top:10px;padding:10px"><div style="font-size:.8rem;font-weight:600;margin-bottom:4px">'+icon('fire')+'最近记录（近 7 天）</div>'+
-'<div style="background:var(--card2);border-radius:10px;padding:6px 4px;margin-bottom:4px">'+bars7(g.theme)+'</div>'+
+'<div style="background:var(--card2);border-radius:10px;padding:6px 4px;margin-bottom:4px">'+bars7(g.theme,g.id)+'</div>'+
 (recentCk.length?recentCk.map(c=>{
 const amt=Number(c.amount)||0;
 const stat=amt>0?'+'+amt+(c.unit||''):'';

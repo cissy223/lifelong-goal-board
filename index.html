@@ -529,7 +529,7 @@ return '<div class="todo '+(od>0?'overdue':'')+(doneToday?' today-done':'')+'" i
 :'<button class="btn primary" title="一键完成" onclick="App.done(\''+t.id+'\')">'+icon('check')+'完成</button>')+
 (t.period?'':'<button class="btn" title="顺延到明天" onclick="App.defer(\''+t.id+'\')">'+icon('defer')+'顺延</button>')+
 '<button class="btn" title="改期" onclick="App.reschedule(\''+t.id+'\')">'+icon('cal')+'改期</button>'+
-'<button class="btn" title="打卡成果验证" onclick="App.checkinModal(\''+t.id+'\')">'+icon('spark')+'打卡</button>'+
+'<button class="btn" title="打卡成果" onclick="App.checkinModal(\''+t.id+'\')">'+icon('spark')+'打卡</button>'+
 '<button class="btn" title="编辑" onclick="App.editTask(\''+t.id+'\')">'+icon('edit')+'</button>'+
 '</div></div>';
 }
@@ -548,7 +548,7 @@ const s=streakInfo().streak;
 const sb=DB.settings.rewards.filter(r=>r.track==='streak').map(r=>({name:r.name,icon:r.icon,cur:s,threshold:r.threshold,unit:'天'}));
 const gb=DB.goals.map(g=>({name:g.title+' · 圆满达成',icon:'flag',cur:Math.round(g.current/g.target*100),threshold:100,unit:'%'}));
 const all=sb.concat(gb);
-return '<section class="card"><h2>'+icon('star')+'奖励勋章</h2><div class="badges">'+
+return '<section class="card"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('star')+'奖励勋章 <button class="btn sm" style="margin-left:auto" onclick="App.badgeManage()">'+icon('sliders')+'管理</button></h2><div class="badges">'+
 all.map(b=>{
 const pct=clamp(Math.round(b.cur/b.threshold*100),0,100);
 const on=pct>=100;
@@ -571,12 +571,12 @@ return '<section class="layers">'+
 '<div class="layer"><h4>'+icon('target')+'本月目标</h4>'+
 (mgoals.length?mgoals.slice(0,4).map(g=>{
 const pct=clamp(Math.round(g.current/g.target*100),0,100);
-return '<div class="li" onclick="App.nav(\'board\')"><span class="dot" style="background:'+THEME_COLOR[g.theme]+'"></span><span class="t">'+esc(g.title)+'</span><small>'+pct+'%</small></div>'+
+return '<div class="li" onclick="App.editGoal(\''+g.id+'\')"><span class="dot" style="background:'+THEME_COLOR[g.theme]+'"></span><span class="t">'+esc(g.title)+'</span><small>'+pct+'%</small></div>'+
 '<div class="bar" style="margin:0 4px 6px 18px"><i style="width:'+pct+'%"></i></div>';
 }).join(''):'<div class="empty">本月暂无目标</div>')+
 '</div>'+
 '<div class="layer"><h4>'+icon('week')+'本周目标 <small style="font-weight:400;color:var(--muted)">'+fmt(ws)+'~'+fmt(we)+'</small></h4>'+
-(wtasks.length?wtasks.slice(0,5).map(t=>'<div class="li" onclick="App.nav(\'week\')"><span class="tag" style="background:'+(t.priority===0?'#D64545':t.priority===1?'#D9922E':'#8b95a3')+';padding:1px 6px">'+PRI[t.priority]+'</span><span class="t">'+esc(t.title)+'</span><small>'+t.dueDate.slice(5)+'</small></div>').join(''):'<div class="empty">本周暂无计划</div>')+
+(wtasks.length?wtasks.slice(0,5).map(t=>'<div class="li" onclick="App.editTask(\''+t.id+'\')"><span class="tag" style="background:'+(t.priority===0?'#D64545':t.priority===1?'#D9922E':'#8b95a3')+';padding:1px 6px">'+PRI[t.priority]+'</span><span class="t">'+esc(t.title)+'</span><small>'+t.dueDate.slice(5)+'</small></div>').join(''):'<div class="empty">本周暂无计划</div>')+
 '</div>'+
 '<div class="layer"><h4>'+icon('today')+'今日待办 <small style="font-weight:400;color:var(--muted)">'+ttasks.length+' 项</small></h4>'+
 (ttasks.length?ttasks.slice(0,5).map(t=>{
@@ -599,8 +599,8 @@ const left=overdue.length+dueToday.length;
 const bIcon=night?'moon':'sun';
 const bTitle=night?'深夜 '+h+' 点，还有 '+left+' 件事没做完':(left>0?'求上进的一天：'+doneToday+' 已完成，还有 '+left+' 件待办':'今天全部清空，求上进满分！');
 return '<section class="banner '+(night?'night':'day')+'"><div class="banner-ribbon"></div><span class="b-ic">'+icon(bIcon)+'</span>'+
-'<h1>'+bTitle+'</h1><p>'+quote()+'</p></section>'+countdownHtml()+
-badgesHtml()+
+'<h1>'+bTitle+'</h1><p>'+quote()+'</p></section>'+badgesHtml()+
+countdownHtml()+
 layersHtml()+
 '<section class="sec"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('alert')+'待办组 <span style="background:var(--danger);color:#fff;border-radius:99px;font-size:.72rem;padding:1px 9px">'+(overdue.length+dueToday.length)+'</span></h2>'+
 (overdue.length?'<div class="card" style="margin-bottom:12px"><h4 style="color:var(--danger)">'+icon('alert')+'逾期 '+(overdue.length)+' 项</h4>'+overdue.map(taskRow).join('')+'</div>':'')+
@@ -612,8 +612,8 @@ layersHtml()+
 (done.length?done.map(doneRow).join(''):'<div class="empty">完成第一件事，来这里领取夸夸</div>')+
 '</section>'+
 '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">'+
-'<button class="btn primary" onclick="App.addTask(\'\')">'+icon('plus')+'新增工作计划</button>'+
-'<button class="btn" onclick="App.checkinModal(\'\')">'+icon('spark')+'打卡成果验证</button>'+
+'<button class="btn primary" onclick="App.addTask(\'\')">'+icon('plus')+'新增计划</button>'+
+'<button class="btn" onclick="App.checkinModal(\'\')">'+icon('spark')+'打卡成果</button>'+
 '</div>';
 }
 function ring(pct,color,cur,target,unit){
@@ -655,7 +655,7 @@ return '<section class="card goal '+(risk!=='ok'?risk:'')+'">'+
 '<div class="g-head">'+ring(pct,THEME_COLOR[g.theme],g.current,g.target,g.unit)+
 '<div class="g-info"><div class="g-tags"><span class="tag" style="background:'+THEME_COLOR[g.theme]+'">'+g.theme+'</span>'+
 (risk==='danger'?'<span class="tag risk">'+icon('alert')+'进度落后</span>':'')+
-(risk==='warn'?'<span class="tag warn">'+icon('alert')+'略低于计划</span>':'')+
+(risk==='warn'?'<span class="tag warn">'+icon('alert')+'略低于计划</span>':'')+'<button class="btn sm" style="margin-left:auto" onclick="App.editGoal(\''+g.id+'\')">'+icon('edit')+'编辑</button>'+
 '</div><h3>'+esc(g.title)+'</h3><p>'+esc(g.desc)+'</p>'+
 '<div class="g-meta">'+
 '<span>'+icon('target')+'建议每日量 <b>'+rate.toFixed(1)+' '+g.unit+'</b></span>'+
@@ -678,7 +678,7 @@ return '<section class="stat-grid">'+
 '<div class="stat"><b>'+DB.checkins.length+'</b><span>累计打卡</span></div>'+
 '</section>'+
 '<section class="sec"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('board')+'目标看板</h2>'+
-(DB.goals.length?DB.goals.map(goalCard).join(''):'<div class="empty">还没有目标，先用「新增工作计划」和「打卡成果验证」开始，或通过「导入 JSON」创建目标</div>')+'</section>';
+(DB.goals.length?DB.goals.map(goalCard).join(''):'<div class="empty">还没有目标，点下方「新增目标」开始</div><button class="btn primary block" style="margin-top:8px" onclick="App.goalModal(\'\')">'+icon('plus')+'新增目标</button>')+'</section>';
 }
 function viewWeek(){
 const ws=state.weekStart,wStart=fmt(ws),wEnd=fmt(addDays(ws,6));
@@ -768,7 +768,7 @@ const html='<div class="pop-t">'+ds+' · 周'+WEEK_CN[parseD(ds).getDay()]+'</di
 '<div style="flex:1;min-width:0"><b>'+esc(t.title)+'</b><small>'+(t.status==='done'?'已完成':(t.period?'每日重复 · '+t.startDate+'~'+t.dueDate:'截止 '+t.dueDate))+'</small></div>'+
 (t.status==='todo'?'<div class="pop-a">'+(t.period&&(t.doneDates||[]).includes(ds)?'<button title="撤销今日" onclick="App.undoDone(\''+t.id+'\')">'+icon('refresh')+'</button>':'<button title="完成" onclick="App.done(\''+t.id+'\')">'+icon('check')+'</button>')+(t.period?'':'<button title="顺延" onclick="App.defer(\''+t.id+'\')">'+icon('defer')+'</button>')+'<button title="打卡验证" onclick="App.checkinModal(\''+t.id+'\')">'+icon('spark')+'</button></div>':'')+
 '</div>').join(''):'<div class="pop-empty">这一天没有计划</div>')+
-'<button class="btn primary block" style="margin-top:8px" onclick="App.addTask(\''+ds+'\')">'+icon('plus')+'新增工作计划</button>';
+'<button class="btn primary block" style="margin-top:8px" onclick="App.addTask(\''+ds+'\')">'+icon('plus')+'新增计划</button>';
 openPop(el,html);
 }
 function viewMe(){
@@ -780,6 +780,12 @@ return '<section class="card"><h2>'+icon('me')+'我的</h2>'+
 '<div class="stat"><b>'+DB.checkins.length+'</b><span>打卡</span></div>'+
 '<div class="stat"><b>'+(size/1024).toFixed(1)+'KB</b><span>存储</span></div>'+
 '</div></section>'+
+'<section class="card" style="margin-top:12px"><h2>'+icon('target')+'目标管理</h2>'+
+(DB.goals.length?DB.goals.map(g=>'<div class="li" style="cursor:pointer" onclick="App.goalModal(\''+g.id+'\')"><span class="dot" style="background:'+THEME_COLOR[g.theme]+'"></span><span class="t">'+esc(g.title)+'</span><small>'+clamp(Math.round(g.current/g.target*100),0,100)+'%</small></div>').join(''):'<div class="empty">暂无目标</div>')+
+'<button class="btn primary block" style="margin-top:8px" onclick="App.goalModal(\'\')">'+icon('plus')+'新增目标</button></section>'+
+'<section class="card" style="margin-top:12px"><h2>'+icon('star')+'勋章管理 <small style="font-weight:400;color:var(--muted)">连续打卡</small></h2>'+
+(DB.settings.rewards.filter(r=>r.track==='streak').length?DB.settings.rewards.filter(r=>r.track==='streak').map(r=>'<div class="li" style="cursor:pointer" onclick="App.badgeModal(\''+r.id+'\')"><span class="dot" style="background:var(--amber)"></span><span class="t">'+esc(r.name)+'</span><small>'+r.threshold+' 天</small></div>').join(''):'<div class="empty">暂无勋章</div>')+
+'<button class="btn primary block" style="margin-top:8px" onclick="App.badgeModal(\'\')">'+icon('plus')+'新增勋章</button></section>'+
 '<section class="card" style="margin-top:12px"><h2>'+icon('download')+'数据备份</h2>'+
 '<div class="row2"><button class="btn primary" onclick="App.exportJSON()">'+icon('download')+'导出 JSON 文件</button>'+
 '<button class="btn" onclick="App.copyJSON()">'+icon('copy')+'一键复制 JSON</button></div>'+
@@ -861,7 +867,7 @@ function reschedule(id){const t=DB.tasks.find(x=>x.id===id);if(!t)return;openMod
 function saveReschedule(id){const t=DB.tasks.find(x=>x.id===id);if(!t)return;t.startDate=$('#rs-s').value||null;t.dueDate=$('#rs-d').value||null;t.updatedAt=Date.now();closeModal();save();render();showToast('已更新日期');}
 function addTask(prefill){
 const d=prefill||todayStr();
-openModal('<h3>'+icon('plus')+'新增工作计划</h3>'+
+openModal('<h3>'+icon('plus')+'新增计划</h3>'+
 '<label>标题 *</label><input id="at-title" maxlength="60" placeholder="要做什么？">'+
 '<div style="display:flex;gap:10px"><div style="flex:1"><label>分类</label><select id="at-cat">'+THEMES.map(th=>'<option '+(th==='工作'?'selected':'')+'>'+th+'</option>').join('')+'</select></div>'+
 '<div style="flex:1"><label>优先级</label><select id="at-pri"><option value="1">重要不紧急</option><option value="0">重要且紧急</option><option value="2">不重要紧急</option><option value="3">不重要不紧急</option></select></div></div>'+
@@ -879,7 +885,7 @@ const period=$('#at-period').checked;
 let start=$('#at-start').value||null,due=$('#at-due').value||null;
 if(period){if(!start||!due){showToast('时间段任务需要开始和截止日期');return;}if(due<start){showToast('截止日期不能早于开始日期');return;}}
 DB.tasks.push({id:uid(),title:title,desc:$('#at-desc').value.trim(),category:$('#at-cat').value,goalId:null,startDate:start,dueDate:due,period:period,doneDates:[],status:'todo',priority:Number($('#at-pri').value),progress:0,summary:'',review:'',deferCount:0,checkins:[],createdAt:Date.now(),completedAt:null,updatedAt:Date.now()});
-closeModal();save();render();showToast('已新增工作计划');
+closeModal();save();render();showToast('已新增计划');
 }
 function editTask(id){
 const t=DB.tasks.find(x=>x.id===id);if(!t)return;
@@ -896,7 +902,7 @@ function delTask(id){confirmModal('删除任务','确定删除「'+esc(DB.tasks.
 /* ========== 打卡成果验证 ========== */
 function checkinModal(taskId){
 const t=taskId?DB.tasks.find(x=>x.id===taskId):null;
-openModal('<h3>'+icon('spark')+'打卡成果验证</h3>'+
+openModal('<h3>'+icon('spark')+'打卡成果</h3>'+
 '<label>关联任务（可选）</label><select id="ck-task"><option value="">无（自由打卡）</option>'+DB.tasks.filter(x=>x.status==='todo').map(x=>'<option value="'+x.id+'" '+(x.id===taskId?'selected':'')+'>'+esc(x.title)+'</option>').join('')+'</select>'+
 '<label>今天做了什么？输入后自动识别类型</label><textarea id="ck-content" rows="3" placeholder="例如：精听英语 30 分钟，完成口语录音复盘…" oninput="App.detectCk(this)"></textarea>'+
 '<label>类型（可手动修改）</label><div id="ck-type" style="margin-top:4px">'+Object.keys(TYPE_COLOR).map(k=>'<label class="tradio"><input type="radio" name="ck-t" value="'+k+'" '+(k==='通用'?'checked':'')+'><span class="dot" style="background:'+TYPE_COLOR[k]+'"></span>'+k+'</label>').join('')+'</div>'+
@@ -1033,8 +1039,8 @@ return '<div class="cd-item'+(e.done?' done':'')+cls+'" onclick="App.editEvent(\
 '<button class="btn sm" onclick="event.stopPropagation();App.editEvent(\''+e.id+'\')">'+icon('edit')+'</button>'+
 '</div></div>';
 };
-return '<section class="card cd-card"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('flag')+'重要倒计时 <button class="btn sm primary" style="margin-left:auto" onclick="App.eventModal(\'\')">'+icon('plus')+'添加</button></h2>'+
-(active.length?active.map(row).join(''):'<div class="empty">还没有重要事件，点击「添加」记一个倒计时</div>')+
+return '<section class="card cd-card"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('flag')+'倒计时 <button class="btn sm primary" style="margin-left:auto" onclick="App.eventModal(\'\')">+</button></h2>'+
+(active.length?active.map(row).join(''):'<div class="empty">还没有重要事件，点击「+」记一个倒计时</div>')+
 (hidden.length?'<div class="cd-hidden"><button class="btn sm" onclick="App.toggleHiddenEvents()">已隐藏 '+hidden.length+' 个</button>'+(state.showHiddenEvents?hidden.map(row).join(''):'')+'</div>':'')+
 '</section>';
 }
@@ -1066,6 +1072,69 @@ confirmModal('删除事件','确定删除「'+esc(e.title)+'」？','删除').th
 function doneEvent(id){const e=DB.events.find(x=>x.id===id);if(!e)return;e.done=true;e.updatedAt=Date.now();save();render();showToast('已完成并隐藏');}
 function undoneEvent(id){const e=DB.events.find(x=>x.id===id);if(!e)return;e.done=false;e.updatedAt=Date.now();save();render();showToast('已恢复');}
 function toggleHiddenEvents(){state.showHiddenEvents=!state.showHiddenEvents;render();}
+/* ========== 勋章管理 ========== */
+let bid=null,gid=null;
+const BADGE_ICONS=['meal','car','plane','star','fire','target','book','heart','clock','smile','spark','flag'];
+function badgeManage(){
+const sb=DB.settings.rewards.filter(r=>r.track==='streak');
+openModal('<h3>'+icon('star')+'勋章管理</h3>'+
+(sb.length?sb.map(r=>'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line)"><span style="width:28px;height:28px;flex:none">'+icon(r.icon)+'</span><div style="flex:1;min-width:0"><b style="font-size:.88rem">'+esc(r.name)+'</b><div style="font-size:.72rem;color:var(--muted)">连续 '+r.threshold+' 天</div></div><button class="btn sm" onclick="App.badgeModal(\''+r.id+'\')">'+icon('edit')+'编辑</button><button class="btn sm danger" onclick="App.delBadge(\''+r.id+'\')">'+icon('trash')+'</button></div>').join(''):'<div class="empty">还没有勋章</div>')+
+'<button class="btn primary block" style="margin-top:8px" onclick="App.badgeModal(\'\')">'+icon('plus')+'新增勋章</button>'+
+'<div class="md-actions"><button class="btn" onclick="App.closeModal()">关闭</button></div>');
+}
+function badgeModal(id){
+bid=id||null;
+const r=id?DB.settings.rewards.find(x=>x.id===id):null;
+openModal('<h3>'+icon('star')+(r?'编辑勋章':'新增勋章')+'</h3>'+
+'<label>名称</label><input id="bd-name" maxlength="20" value="'+esc(r?r.name:'')+'" placeholder="如：100天夜跑">'+
+'<label>连续天数</label><input id="bd-thr" type="number" min="1" max="3650" value="'+(r?r.threshold:7)+'">'+
+'<label>图标</label><select id="bd-icon">'+BADGE_ICONS.map(i=>'<option value="'+i+'" '+(r&&r.icon===i?'selected':'')+'>'+i+'</option>').join('')+'</select>'+
+'<div class="md-actions">'+(r?'<button class="btn danger" onclick="App.delBadge(\''+id+'\')">'+icon('trash')+'删除</button>':'')+'<button class="btn" onclick="App.closeModal()">取消</button><button class="btn primary" onclick="App.saveBadge()">保存</button></div>');
+}
+function saveBadge(){
+const name=$('#bd-name').value.trim();if(!name){showToast('请输入名称');return;}
+const thr=Math.max(1,Math.floor(Number($('#bd-thr').value)||7));
+const icon=$('#bd-icon').value;
+if(bid){const r=DB.settings.rewards.find(x=>x.id===bid);if(r){r.name=name;r.threshold=thr;r.icon=icon;}}
+else{DB.settings.rewards.push({id:uid(),name:name,icon:icon,track:'streak',threshold:thr});}
+closeModal();save();render();showToast('已保存勋章');
+}
+function delBadge(id){
+const r=DB.settings.rewards.find(x=>x.id===id);if(!r)return;
+confirmModal('删除勋章','确定删除「'+esc(r.name)+'」？','删除').then(ok=>{if(!ok)return;DB.settings.rewards=DB.settings.rewards.filter(x=>x.id!==id);save();render();showToast('已删除勋章');});
+}
+/* ========== 目标管理 ========== */
+function goalModal(id){
+gid=id||null;
+const g=id?DB.goals.find(x=>x.id===id):null;
+openModal('<h3>'+icon('target')+(g?'编辑目标':'新增目标')+'</h3>'+
+'<label>标题 *</label><input id="gl-title" maxlength="40" value="'+esc(g?g.title:'')+'" placeholder="如：英语流利说">'+
+'<label>描述</label><input id="gl-desc" maxlength="120" value="'+esc(g?g.desc:'')+'" placeholder="可选">'+
+'<div style="display:flex;gap:10px"><div style="flex:1"><label>主题</label><select id="gl-theme">'+THEMES.map(th=>'<option '+(g&&g.theme===th?'selected':'')+(th==='学习'&&!g?'selected':'')+'>'+th+'</option>').join('')+'</select></div>'+
+'<div style="flex:1"><label>单位</label><input id="gl-unit" maxlength="6" value="'+esc(g?g.unit:'次')+'"></div></div>'+
+'<div style="display:flex;gap:10px"><div style="flex:1"><label>目标值 *</label><input id="gl-target" type="number" min="1" value="'+(g?g.target:100)+'"></div>'+
+'<div style="flex:1"><label>当前值</label><input id="gl-cur" type="number" min="0" value="'+(g?g.current:0)+'"></div></div>'+
+'<div style="display:flex;gap:10px"><div style="flex:1"><label>开始日期</label><input type="date" id="gl-start" value="'+(g&&g.startDate?g.startDate:todayStr())+'"></div>'+
+'<div style="flex:1"><label>结束日期</label><input type="date" id="gl-end" value="'+(g&&g.endDate?g.endDate:fmt(addDays(new Date(),90)))+'"></div></div>'+
+'<div class="md-actions">'+(g?'<button class="btn danger" onclick="App.delGoal()">'+icon('trash')+'删除</button>':'')+
+'<button class="btn" onclick="App.closeModal()">取消</button><button class="btn primary" onclick="App.saveGoal()">保存</button></div>');
+setTimeout(()=>{const el=$('#gl-title');if(el)el.focus();},50);
+}
+function editGoal(id){goalModal(id);}
+function saveGoal(){
+const title=$('#gl-title').value.trim();if(!title){showToast('请输入目标标题');return;}
+const target=Math.max(1,Number($('#gl-target').value)||1);
+const current=Math.max(0,Number($('#gl-cur').value)||0);
+const data={title:title,desc:$('#gl-desc').value.trim(),theme:$('#gl-theme').value,unit:$('#gl-unit').value.trim()||'次',target:target,current:current,startDate:$('#gl-start').value||null,endDate:$('#gl-end').value||null};
+if(gid){const e=DB.goals.find(x=>x.id===gid);if(e)Object.assign(e,data);}
+else{DB.goals.push(Object.assign({id:uid()},data));}
+closeModal();save();render();showToast('已保存目标');
+}
+function delGoal(){
+if(!gid)return;
+const e=DB.goals.find(x=>x.id===gid);if(!e)return;
+confirmModal('删除目标','确定删除「'+esc(e.title)+'」？关联任务不会被删除。','删除').then(ok=>{if(!ok)return;DB.goals=DB.goals.filter(x=>x.id!==gid);closeModal();save();render();showToast('已删除目标');});
+}
 /* ========== 渲染 / 路由 ========== */
 function renderSidebar(){
 $('#nav').innerHTML=TABS.map(t=>'<button class="nav-i '+(state.tab===t[0]?'active':'')+'" onclick="App.nav(\''+t[0]+'\')">'+icon(t[2])+'<span>'+t[1]+'</span></button>').join('');
@@ -1091,7 +1160,7 @@ $('#rail').innerHTML=
 '<div class="r-stat"><span>本周完成</span><b>'+weekDone+' 项</b></div></div>'+
 '<div class="card"><h4>'+icon('fire')+'最近打卡</h4>'+
 (recent.length?recent.map(c=>'<div class="r-chk"><span class="dot" style="background:'+TYPE_COLOR[c.type]+'"></span><div><b style="color:'+TYPE_COLOR[c.type]+'">'+c.type+'</b><small>'+esc(short(c.content))+'</small></div></div>').join(''):'<div class="empty">还没有打卡记录</div>')+'</div>'+
-'<button class="btn primary block" onclick="App.checkinModal(\'\')">'+icon('spark')+'打卡成果验证</button>';
+'<button class="btn primary block" onclick="App.checkinModal(\'\')">'+icon('spark')+'打卡成果</button>';
 }
 function render(){
 renderSidebar();
@@ -1117,6 +1186,8 @@ exportJSON:exportJSON,copyJSON:copyJSON,openExportModal:openExportModal,copyArea
 importFile:importFile,pasteImport:pasteImport,doPasteImport:doPasteImport,
 clearAll:clearAll,setAutoDefer:setAutoDefer,
 eventModal:eventModal,saveEvent:saveEvent,delEvent:delEvent,doneEvent:doneEvent,undoneEvent:undoneEvent,toggleHiddenEvents:toggleHiddenEvents,editEvent:editEvent,
+goalModal:goalModal,editGoal:editGoal,saveGoal:saveGoal,delGoal:delGoal,
+badgeManage:badgeManage,badgeModal:badgeModal,saveBadge:saveBadge,delBadge:delBadge,
 closeModal:closeModal,
 syncNow:syncNow,setSyncEnabled:setSyncEnabled,setSyncKey:setSyncKey,
 scrollTask(id){state.tab='today';render();setTimeout(()=>{const el=document.getElementById('tk-'+id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.transition='box-shadow .4s';el.style.boxShadow='0 0 0 4px rgba(76,154,106,.35)';setTimeout(()=>{el.style.boxShadow='';},1600);}},60);}

@@ -229,6 +229,7 @@ textarea{resize:vertical}
 .cd-info span{color:var(--muted);font-size:.75rem}
 .cd-actions{display:flex;gap:6px;flex:none}
 .cd-hidden{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
+.todo.today-done{opacity:.62}
 </style>
 </head>
 <body>
@@ -298,7 +299,7 @@ const LS_KEY='lifelong-goal-board';
 const THEMES=['学习','健康','工作','理财','人际','兴趣'];
 const THEME_COLOR={'学习':'#3E7CB1','健康':'#4C9A6A','工作':'#C08A3E','理财':'#8E6BBF','人际':'#D9706C','兴趣':'#D1789F'};
 const TYPE_COLOR={'感悟':'#3E7CB1','视频链接':'#8E6BBF','成品':'#4C9A6A','通用':'#C08A3E'};
-const PRI=['P0','P1','P2'];
+const PRI=['重要且紧急','重要不紧急','不重要紧急','不重要不紧急'];
 const WEEK_CN=['日','一','二','三','四','五','六'];
 const PRAISE=['真棒！','稳住了！','漂亮！','求上进！','又进一步！','优秀！'];
 const TABS=[['today','今日','today'],['board','看板','board'],['week','周报','week'],['cal','日历','cal'],['me','我的','me']];
@@ -359,9 +360,9 @@ startDate:g.startDate||null,endDate:g.endDate||null
 tasks:(Array.isArray(d.tasks)?d.tasks:[]).map(t=>({
 id:t.id||uid(),title:String(t.title||'未命名任务'),desc:String(t.desc||''),category:THEMES.includes(t.category)?t.category:'工作',
 goalId:t.goalId||null,startDate:t.startDate||null,dueDate:t.dueDate||null,period:!!t.period,
-status:t.status==='done'?'done':'todo',priority:[0,1,2].includes(t.priority)?t.priority:1,
+status:t.status==='done'?'done':'todo',priority:[0,1,2,3].includes(t.priority)?t.priority:1,
 progress:Number(t.progress)||0,summary:String(t.summary||''),review:String(t.review||''),deferCount:Number(t.deferCount)||0,
-checkins:Array.isArray(t.checkins)?t.checkins:[],createdAt:t.createdAt||Date.now(),
+checkins:Array.isArray(t.checkins)?t.checkins:[],doneDates:Array.isArray(t.doneDates)?t.doneDates:[],createdAt:t.createdAt||Date.now(),
 completedAt:t.completedAt||null,updatedAt:t.updatedAt||Date.now()
 })),
 checkins:(Array.isArray(d.checkins)?d.checkins:[]).map(c=>({
@@ -390,7 +391,7 @@ const s=DB.settings;if(!s.autoDefer)return 0;
 const T=todayStr();
 if(DB.meta.lastAutoDeferDate===T)return 0;
 let n=0;
-DB.tasks.forEach(t=>{if(t.status==='todo'&&t.dueDate&&t.dueDate<T){t.dueDate=fmt(addDays(new Date(),1));t.deferCount=(t.deferCount||0)+1;t.updatedAt=Date.now();n++;}});
+DB.tasks.forEach(t=>{if(t.status==='todo'&&t.dueDate&&t.dueDate<T&&!t.period){t.dueDate=fmt(addDays(new Date(),1));t.deferCount=(t.deferCount||0)+1;t.updatedAt=Date.now();n++;}});
 DB.meta.lastAutoDeferDate=T;
 if(n)save();
 return n;
@@ -485,13 +486,16 @@ function autoReview(t){return '完成了「'+t.title+'」。建议补一段成�
 function dueOn(t,day){
 if(t.status==='done')return false;
 if(t.dueDate===day)return true;
-if(t.period&&t.startDate&&t.dueDate&&t.startDate<=day&&day<=t.dueDate)return true;
+if(isPeriodDay(t,day))return true;
 return false;
 }
 function tasksOnDay(ds){
 return DB.tasks.filter(t=>{
+if(t.period){
+if(t.status==='done')return (t.doneDates||[]).includes(ds)||(t.completedAt&&t.completedAt.slice(0,10)===ds);
+return isPeriodDay(t,ds);
+}
 if(t.status==='done')return t.completedAt&&t.completedAt.slice(0,10)===ds;
-if(t.period)return t.startDate===ds||t.dueDate===ds;
 return t.dueDate===ds;
 });
 }
@@ -499,13 +503,16 @@ function taskRow(t){
 const T=todayStr();
 const od=t.status==='todo'&&t.dueDate&&t.dueDate<T?daysBetween(t.dueDate,T):0;
 const odDays=od>0?od+' 天':'';
-return '<div class="todo '+(od>0?'overdue':'')+'" id="tk-'+t.id+'">'+
+const pp=t.period?periodProgress(t):t.progress;
+const doneToday=!!(t.period&&(t.doneDates||[]).includes(T));
+return '<div class="todo '+(od>0?'overdue':'')+(doneToday?' today-done':'')+'" id="tk-'+t.id+'">'+
 '<div class="t-main">'+
 '<div class="t-top"><span class="tag" style="background:'+THEME_COLOR[t.category]+'">'+t.category+'</span>'+
-'<span class="tag" style="background:'+(t.priority===0?'#D64545':t.priority===1?'#D9922E':'#8b95a3')+'">'+PRI[t.priority]+'</span>'+
+'<span class="tag" style="background:'+(t.priority===0?'#D64545':t.priority===1?'#D9922E':t.priority===2?'#E4A11B':'#8b95a3')+'">'+PRI[t.priority]+'</span>'+
 (od>0?'<span class="od-badge">逾期 '+odDays+'</span>':'')+
-(t.period?'<span class="per-badge">时间段</span>':'')+
-(t.period&&t.progress>0?'<span class="per-badge">进度 '+t.progress+'%</span>':'')+
+(t.period?'<span class="per-badge">每日重复</span>':'')+
+(t.period&&pp>0?'<span class="per-badge">进度 '+pp+'%</span>':'')+
+(doneToday?'<span class="per-badge" style="background:var(--green);color:#fff">今日已 ✓</span>':'')+
 '</div>'+
 '<div class="t-title">'+esc(t.title)+'</div>'+
 (t.desc?'<div class="t-desc">'+esc(t.desc)+'</div>':'')+
@@ -514,11 +521,13 @@ return '<div class="todo '+(od>0?'overdue':'')+'" id="tk-'+t.id+'">'+
 (t.dueDate?'<span>'+icon('flag')+'截止 '+t.dueDate+'</span>':'')+
 '<span>'+icon('edit')+(t.deferCount?'已顺延 '+t.deferCount+' 次':'待办')+'</span>'+
 '</div>'+
-(t.period?'<div class="bar" style="margin-top:6px"><i style="width:'+clamp(t.progress,0,100)+'%"></i></div>':'')+
+(t.period?'<div class="bar" style="margin-top:6px"><i style="width:'+clamp(pp,0,100)+'%"></i></div>':'')+
 '</div>'+
 '<div class="t-actions">'+
-'<button class="btn primary" title="一键完成" onclick="App.done(\''+t.id+'\')">'+icon('check')+'完成</button>'+
-'<button class="btn" title="顺延到明天" onclick="App.defer(\''+t.id+'\')">'+icon('defer')+'顺延</button>'+
+(t.period
+?(doneToday?'<button class="btn" title="撤销今日完成" onclick="App.undoDone(\''+t.id+'\')">'+icon('refresh')+'撤销</button>':'<button class="btn primary" title="今日完成" onclick="App.done(\''+t.id+'\')">'+icon('check')+'完成</button>')
+:'<button class="btn primary" title="一键完成" onclick="App.done(\''+t.id+'\')">'+icon('check')+'完成</button>')+
+(t.period?'':'<button class="btn" title="顺延到明天" onclick="App.defer(\''+t.id+'\')">'+icon('defer')+'顺延</button>')+
 '<button class="btn" title="改期" onclick="App.reschedule(\''+t.id+'\')">'+icon('cal')+'改期</button>'+
 '<button class="btn" title="打卡成果验证" onclick="App.checkinModal(\''+t.id+'\')">'+icon('spark')+'打卡</button>'+
 '<button class="btn" title="编辑" onclick="App.editTask(\''+t.id+'\')">'+icon('edit')+'</button>'+
@@ -557,7 +566,7 @@ return ge>=ms&&gs<=me;
 });
 const ws=state.weekStart,we=addDays(ws,6);
 const wtasks=DB.tasks.filter(t=>t.status==='todo'&&t.dueDate&&t.dueDate>=fmt(ws)&&t.dueDate<=fmt(we)).sort((a,b)=>(a.priority-b.priority)||a.dueDate.localeCompare(b.dueDate));
-const ttasks=DB.tasks.filter(t=>t.status==='todo'&&dueOn(t,T)).sort((a,b)=>(a.dueDate||'').localeCompare(b.dueDate||''));
+const ttasks=DB.tasks.filter(t=>t.status==='todo'&&dueOn(t,T)).sort((a,b)=>(a.priority-b.priority)||(a.dueDate||'').localeCompare(b.dueDate||''));
 return '<section class="layers">'+
 '<div class="layer"><h4>'+icon('target')+'本月目标</h4>'+
 (mgoals.length?mgoals.slice(0,4).map(g=>{
@@ -582,7 +591,7 @@ const h=new Date().getHours();
 const night=h>=22||h<5;
 const todos=DB.tasks.filter(t=>t.status==='todo');
 const overdue=todos.filter(t=>t.dueDate&&t.dueDate<T).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
-const dueToday=todos.filter(t=>dueOn(t,T));
+const dueToday=todos.filter(t=>dueOn(t,T)).sort((a,b)=>(a.priority-b.priority)||(a.dueDate||'').localeCompare(b.dueDate||''));
 const upcoming=todos.filter(t=>!overdue.includes(t)&&!dueToday.includes(t)&&t.dueDate&&t.dueDate<=fmt(addDays(new Date(),7))).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
 const done=DB.tasks.filter(t=>t.status==='done').sort((a,b)=>(b.completedAt||'').localeCompare(a.completedAt||''));
 const doneToday=done.filter(t=>t.completedAt&&t.completedAt.slice(0,10)===T).length;
@@ -756,8 +765,8 @@ function popDay(ds,el){
 const tasks=tasksOnDay(ds);
 const html='<div class="pop-t">'+ds+' · 周'+WEEK_CN[parseD(ds).getDay()]+'</div>'+
 (tasks.length?tasks.map(t=>'<div class="pop-i"><span class="dot" style="background:'+THEME_COLOR[t.category]+';margin-top:5px"></span>'+
-'<div style="flex:1;min-width:0"><b>'+esc(t.title)+'</b><small>'+(t.status==='done'?'已完成':(t.period?'时间段 · '+t.startDate+'~'+t.dueDate:'截止 '+t.dueDate))+'</small></div>'+
-(t.status==='todo'?'<div class="pop-a"><button title="完成" onclick="App.done(\''+t.id+'\')">'+icon('check')+'</button><button title="顺延" onclick="App.defer(\''+t.id+'\')">'+icon('defer')+'</button><button title="打卡验证" onclick="App.checkinModal(\''+t.id+'\')">'+icon('spark')+'</button></div>':'')+
+'<div style="flex:1;min-width:0"><b>'+esc(t.title)+'</b><small>'+(t.status==='done'?'已完成':(t.period?'每日重复 · '+t.startDate+'~'+t.dueDate:'截止 '+t.dueDate))+'</small></div>'+
+(t.status==='todo'?'<div class="pop-a">'+(t.period&&(t.doneDates||[]).includes(ds)?'<button title="撤销今日" onclick="App.undoDone(\''+t.id+'\')">'+icon('refresh')+'</button>':'<button title="完成" onclick="App.done(\''+t.id+'\')">'+icon('check')+'</button>')+(t.period?'':'<button title="顺延" onclick="App.defer(\''+t.id+'\')">'+icon('defer')+'</button>')+'<button title="打卡验证" onclick="App.checkinModal(\''+t.id+'\')">'+icon('spark')+'</button></div>':'')+
 '</div>').join(''):'<div class="pop-empty">这一天没有计划</div>')+
 '<button class="btn primary block" style="margin-top:8px" onclick="App.addTask(\''+ds+'\')">'+icon('plus')+'新增工作计划</button>';
 openPop(el,html);
@@ -838,7 +847,15 @@ async function syncNow(){
 function setSyncEnabled(v){syncSet({enabled:v});save();if(v){syncNow();}render();}
 function setSyncKey(v){syncSet({key:String(v||'').trim()});save();}
 /* ========== 任务操作 ========== */
-function done(id){const t=DB.tasks.find(x=>x.id===id);if(!t)return;t.status='done';t.progress=100;t.completedAt=nowStamp();t.updatedAt=Date.now();save();closePop();render();showToast('已完成，求上进！');}
+function done(id){
+const t=DB.tasks.find(x=>x.id===id);if(!t)return;
+if(t.period&&t.status==='todo'&&isPeriodDay(t,todayStr())){
+const T=todayStr();
+if(!(t.doneDates||[]).includes(T))t.doneDates=(t.doneDates||[]).concat(T);
+t.updatedAt=Date.now();settlePeriods();save();closePop();render();showToast('今日已完成，明天继续');return;
+}
+t.status='done';t.progress=100;t.completedAt=nowStamp();t.updatedAt=Date.now();save();closePop();render();showToast('已完成，求上进！');
+}
 function defer(id){const t=DB.tasks.find(x=>x.id===id);if(!t)return;t.dueDate=fmt(addDays(new Date(),1));t.deferCount=(t.deferCount||0)+1;t.updatedAt=Date.now();save();closePop();render();showToast('已顺延到明天');}
 function reschedule(id){const t=DB.tasks.find(x=>x.id===id);if(!t)return;openModal('<h3>'+icon('cal')+'改期「'+esc(t.title)+'」</h3><label>预计开始时间</label><input type="date" id="rs-s" value="'+(t.startDate||todayStr())+'"><label>截止日期</label><input type="date" id="rs-d" value="'+(t.dueDate||todayStr())+'"><div class="md-actions"><button class="btn" onclick="App.closeModal()">取消</button><button class="btn primary" onclick="App.saveReschedule(\''+id+'\')">保存</button></div>');}
 function saveReschedule(id){const t=DB.tasks.find(x=>x.id===id);if(!t)return;t.startDate=$('#rs-s').value||null;t.dueDate=$('#rs-d').value||null;t.updatedAt=Date.now();closeModal();save();render();showToast('已更新日期');}
@@ -847,10 +864,10 @@ const d=prefill||todayStr();
 openModal('<h3>'+icon('plus')+'新增工作计划</h3>'+
 '<label>标题 *</label><input id="at-title" maxlength="60" placeholder="要做什么？">'+
 '<div style="display:flex;gap:10px"><div style="flex:1"><label>分类</label><select id="at-cat">'+THEMES.map(th=>'<option '+(th==='工作'?'selected':'')+'>'+th+'</option>').join('')+'</select></div>'+
-'<div style="flex:1"><label>优先级</label><select id="at-pri"><option value="1">P1 重要</option><option value="0">P0 紧急</option><option value="2">P2 普通</option></select></div></div>'+
+'<div style="flex:1"><label>优先级</label><select id="at-pri"><option value="1">重要不紧急</option><option value="0">重要且紧急</option><option value="2">不重要紧急</option><option value="3">不重要不紧急</option></select></div></div>'+
 '<div style="display:flex;gap:10px"><div style="flex:1"><label>预计开始时间</label><input type="date" id="at-start" value="'+d+'"></div>'+
 '<div style="flex:1"><label>截止日期</label><input type="date" id="at-due" value="'+d+'"></div></div>'+
-'<label class="chk"><input type="checkbox" id="at-period" onchange="App.periodToggle(this)"> 时间段任务（如：一个月）</label>'+
+'<label class="chk"><input type="checkbox" id="at-period" onchange="App.periodToggle(this)"> 每日重复任务（一段时间内每天都要做，如：30 天口语训练）</label>'+
 '<label>说明</label><input id="at-desc" maxlength="120" placeholder="可选">'+
 '<div class="md-actions"><button class="btn" onclick="App.closeModal()">取消</button><button class="btn primary" onclick="App.saveTask()">保存</button></div>');
 setTimeout(()=>{const el=$('#at-title');if(el)el.focus();},50);
@@ -861,7 +878,7 @@ const title=$('#at-title').value.trim();if(!title){showToast('请输入标题');
 const period=$('#at-period').checked;
 let start=$('#at-start').value||null,due=$('#at-due').value||null;
 if(period){if(!start||!due){showToast('时间段任务需要开始和截止日期');return;}if(due<start){showToast('截止日期不能早于开始日期');return;}}
-DB.tasks.push({id:uid(),title:title,desc:$('#at-desc').value.trim(),category:$('#at-cat').value,goalId:null,startDate:start,dueDate:due,period:period,status:'todo',priority:Number($('#at-pri').value),progress:0,summary:'',review:'',deferCount:0,checkins:[],createdAt:Date.now(),completedAt:null,updatedAt:Date.now()});
+DB.tasks.push({id:uid(),title:title,desc:$('#at-desc').value.trim(),category:$('#at-cat').value,goalId:null,startDate:start,dueDate:due,period:period,doneDates:[],status:'todo',priority:Number($('#at-pri').value),progress:0,summary:'',review:'',deferCount:0,checkins:[],createdAt:Date.now(),completedAt:null,updatedAt:Date.now()});
 closeModal();save();render();showToast('已新增工作计划');
 }
 function editTask(id){
@@ -983,6 +1000,21 @@ showToast(syncEnabled()?'已清空全部数据（已同步到云端）':'已清�
 });
 }
 function setAutoDefer(v){DB.settings.autoDefer=v;save();showToast(v?'已开启自动顺延':'已关闭自动顺延');}
+/* ========== 每日重复任务 ========== */
+function periodTotal(t){if(!t.period||!t.startDate||!t.dueDate)return 0;return daysBetween(t.startDate,t.dueDate)+1;}
+function periodDoneCount(t){if(!t.period)return 0;return (t.doneDates||[]).filter(ds=>t.startDate<=ds&&ds<=t.dueDate).length;}
+function periodProgress(t){const tot=periodTotal(t);return tot?Math.round(periodDoneCount(t)/tot*100):0;}
+function isPeriodDay(t,ds){return !!(t.period&&t.startDate&&t.dueDate&&t.startDate<=ds&&ds<=t.dueDate);}
+function settlePeriods(){
+const T=todayStr();let changed=false;
+DB.tasks.forEach(t=>{
+if(!t.period||t.status==='done'||!t.startDate||!t.dueDate)return;
+if(T<=t.dueDate)return;
+if(periodDoneCount(t)>=periodTotal(t)){t.status='done';t.progress=100;t.completedAt=t.dueDate+' 23:59';t.updatedAt=Date.now();changed=true;}
+});
+if(changed)save();
+}
+function undoDone(id){const t=DB.tasks.find(x=>x.id===id);if(!t)return;const T=todayStr();t.doneDates=(t.doneDates||[]).filter(d=>d!==T);t.updatedAt=Date.now();save();closePop();render();showToast('已撤销今日完成');}
 /* ========== 重要倒计时 ========== */
 let evId=null;
 function countdownHtml(){
@@ -1079,7 +1111,7 @@ calToday(){state.calY=new Date().getFullYear();state.calM=new Date().getMonth();
 popDay:popDay,
 addTask:addTask,periodToggle:periodToggle,saveTask:saveTask,
 editTask:editTask,saveEdit:saveEdit,delTask:delTask,
-done:done,defer:defer,reschedule:reschedule,saveReschedule:saveReschedule,
+done:done,undoDone:undoDone,defer:defer,reschedule:reschedule,saveReschedule:saveReschedule,
 checkinModal:checkinModal,detectCk:detectCk,submitCheckin:submitCheckin,
 exportJSON:exportJSON,copyJSON:copyJSON,openExportModal:openExportModal,copyArea:copyArea,downloadTxt:downloadTxt,
 importFile:importFile,pasteImport:pasteImport,doPasteImport:doPasteImport,
@@ -1094,6 +1126,7 @@ document.addEventListener('click',e=>{const p=$('#pop');if(p.style.display==='bl
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closePop();}});
 load();
 const n=autoDefer();
+settlePeriods();
 render();
 syncPull();
 if(n)setTimeout(()=>showToast('已自动顺延 '+n+' 项逾期任务到明天'),600);

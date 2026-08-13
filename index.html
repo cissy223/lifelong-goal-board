@@ -332,42 +332,9 @@ function defaultSettings(){return {autoDefer:true,rewards:[
 {id:'r2',name:'130天国内游',icon:'car',track:'streak',threshold:130},
 {id:'r3',name:'180天出国游',icon:'plane',track:'streak',threshold:180}
 ],kw:KW,sync:{enabled:false,key:'',lastSyncAt:null,serverUpdatedAt:0}};}
-function seed(){
+function emptyState(){
 const T=todayStr();
-const D=n=>fmt(addDays(new Date(),n));
-const tasks=[
-{id:'t1',title:'整理上周运营数据周报',desc:'汇总阅读量/涨粉/互动，输出给团队',category:'工作',goalId:'g3',startDate:D(-3),dueDate:D(-2),priority:0,createdAt:Date.now()-4*864e5,updatedAt:Date.now()-2*864e5},
-{id:'t2',title:'英语精听 1 篇 TED',desc:'精听+跟读，记录生词',category:'学习',goalId:'g1',startDate:D(-2),dueDate:D(-1),priority:1,createdAt:Date.now()-3*864e5,updatedAt:Date.now()-864e5},
-{id:'t3',title:'预约年度体检',desc:'选一家三甲医院',category:'健康',goalId:'g2',startDate:D(-6),dueDate:D(-3),priority:1,createdAt:Date.now()-6*864e5,updatedAt:Date.now()-3*864e5},
-{id:'t4',title:'完成自媒体周更选题库',desc:'整理 12 个备选选题',category:'工作',goalId:'g3',startDate:T,dueDate:D(2),priority:1,createdAt:Date.now(),updatedAt:Date.now()},
-{id:'t5',title:'读完《被讨厌的勇气》第3章',desc:'输出 500 字笔记',category:'学习',goalId:'g1',startDate:T,dueDate:D(4),priority:2,createdAt:Date.now(),updatedAt:Date.now()},
-{id:'t6',title:'健身房力量训练 2 次',desc:'卧推/划船/深蹲',category:'健康',goalId:'g2',startDate:T,dueDate:D(5),priority:0,createdAt:Date.now(),updatedAt:Date.now()},
-{id:'t7',title:'英语口语 30 天训练营',desc:'时间段任务：每天跟读+录音复盘',category:'学习',goalId:'g1',startDate:D(-10),dueDate:D(20),period:true,progress:32,priority:1,createdAt:Date.now()-10*864e5,updatedAt:Date.now()},
-{id:'t8',title:'发布公众号文章《清单体写作》',desc:'排版+配图+发布',category:'工作',goalId:'g3',startDate:D(-3),dueDate:D(-1),status:'done',summary:'已发布，阅读量 320，涨粉 12',review:'清单体标题打开率更高，下周复用该模板',completedAt:D(-1)+' 21:30',createdAt:Date.now()-3*864e5,updatedAt:Date.now()-864e5},
-{id:'t9',title:'晨跑 3 公里 ×3 次',desc:"配速 6'20 以内",category:'健康',goalId:'g2',startDate:D(-6),dueDate:D(-2),status:'done',summary:'3 次晨跑完成，配速稳定',review:'固定晨间时段后执行率明显提升',completedAt:D(-2)+' 08:10',createdAt:Date.now()-6*864e5,updatedAt:Date.now()-2*864e5}
-];
-const checkins=[
-{id:'c1',date:D(-15),taskId:'t2',type:'感悟',content:'精听英语 30 分钟，发现自己对连读的敏感度提高了，复盘了本周听力错误。',createdAt:Date.now()-15*864e5},
-{id:'c2',date:D(-14),taskId:'t7',type:'通用',content:'背了 30 个雅思词汇，复习了上周错词本。',createdAt:Date.now()-14*864e5},
-{id:'c3',date:D(-13),taskId:'t9',type:'成品',content:'完成晨跑 3 公里+拉伸，配速 6 分 20。',createdAt:Date.now()-13*864e5},
-{id:'c4',date:D(-12),taskId:'t8',type:'感悟',content:'复盘上周公众号数据，发现清单体标题打开率更高，下周优化选题方向。',createdAt:Date.now()-12*864e5},
-{id:'c5',date:D(-11),taskId:'t7',type:'视频链接',content:'看完 TED《How to learn faster》，做了 5 条笔记，计划用于口语训练。',createdAt:Date.now()-11*864e5},
-{id:'c6',date:D(-10),taskId:'t6',type:'通用',content:'健身房力量训练 1 小时，卧推突破 60kg。',createdAt:Date.now()-10*864e5},
-{id:'c7',date:D(-9),taskId:'t4',type:'成品',content:'完成自媒体周更选题库初稿，整理 12 个选题。',createdAt:Date.now()-9*864e5},
-{id:'c8',date:D(-8),taskId:null,type:'通用',content:'画了 30 分钟水彩，练习天空渐变。',createdAt:Date.now()-8*864e5},
-{id:'c9',date:D(-7),taskId:null,type:'感悟',content:'开始记录饮食，发现自己碳水偏多，调整了晚餐结构。',createdAt:Date.now()-7*864e5},
-{id:'c10',date:D(-6),taskId:'t7',type:'成品',content:'完成英语口语练习打卡，跟读 30 分钟+录音复盘。',createdAt:Date.now()-6*864e5},
-{id:'c11',date:D(-5),taskId:'t4',type:'通用',content:'整理 3 个竞品账号，拆解了它们的爆款结构。',createdAt:Date.now()-5*864e5},
-{id:'c12',date:D(-4),taskId:null,type:'感悟',content:'给爸妈打了 40 分钟电话，聊了近期规划，关系更近了。',createdAt:Date.now()-4*864e5},
-{id:'c13',date:D(-2),taskId:'t5',type:'通用',content:'读完《被讨厌的勇气》第2章，写了 500 字笔记。',createdAt:Date.now()-2*864e5},
-{id:'c14',date:D(-1),taskId:'t1',type:'成品',content:'完成周报初稿，数据可视化部分用了柱状图。',createdAt:Date.now()-864e5}
-];
-const goals=[
-{id:'g1',title:'英语流利说',desc:'听说读写全面突破，每天保持输入',theme:'学习',unit:'小时',target:300,current:128,startDate:D(-64),endDate:D(80)},
-{id:'g2',title:'健身塑形',desc:'力量+有氧结合，把运动变成习惯',theme:'健康',unit:'次',target:40,current:8,startDate:D(-40),endDate:D(52)},
-{id:'g3',title:'自媒体变现',desc:'内容持续输出，跑通涨粉与变现',theme:'工作',unit:'分',target:100,current:36,startDate:D(-45),endDate:D(90)}
-];
-return {goals,tasks,checkins,settings:defaultSettings(),meta:{createdAt:Date.now(),updatedAt:Date.now(),lastAutoDeferDate:T}};
+return {goals:[],tasks:[],checkins:[],settings:defaultSettings(),meta:{createdAt:Date.now(),updatedAt:Date.now(),lastAutoDeferDate:T}};
 }
 function migrate(raw){
 const d=(raw&&typeof raw==='object')?raw:{};
@@ -402,9 +369,9 @@ function save(){DB.meta.updatedAt=Date.now();try{localStorage.setItem(LS_KEY,JSO
 function load(){
 try{
 const raw=localStorage.getItem(LS_KEY);
-if(!raw){DB=migrate(seed());DB.meta.lastAutoDeferDate=todayStr();save();return;}
+if(!raw){DB=migrate(emptyState());DB.meta.lastAutoDeferDate=todayStr();save();return;}
 DB=migrate(JSON.parse(raw));
-}catch(e){DB=migrate(seed());DB.meta.lastAutoDeferDate=todayStr();save();}
+}catch(e){DB=migrate(emptyState());DB.meta.lastAutoDeferDate=todayStr();save();}
 }
 function autoDefer(){
 const s=DB.settings;if(!s.autoDefer)return 0;
@@ -690,7 +657,7 @@ return '<section class="stat-grid">'+
 '<div class="stat"><b>'+DB.checkins.length+'</b><span>累计打卡</span></div>'+
 '</section>'+
 '<section class="sec"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('board')+'目标看板</h2>'+
-DB.goals.map(goalCard).join('')+'</section>';
+(DB.goals.length?DB.goals.map(goalCard).join(''):'<div class="empty">还没有目标，先用「新增工作计划」和「打卡成果验证」开始，或通过「导入 JSON」创建目标</div>')+'</section>';
 }
 function viewWeek(){
 const ws=state.weekStart,wStart=fmt(ws),wEnd=fmt(addDays(ws,6));
@@ -995,9 +962,11 @@ confirmModal('清空全部数据','将删除本机保存的所有目标、任务
 if(!ok)return;
 confirmModal('再次确认','真的要清空吗？建议先「导出 JSON」备份。','确认清空').then(ok2=>{
 if(!ok2)return;
-try{localStorage.removeItem(LS_KEY);}catch(e){}
-load();render();
-showToast('已清空并恢复示例数据');
+const keep=DB.settings;
+DB=emptyState();
+DB.settings=keep;
+save();render();
+showToast(syncEnabled()?'已清空全部数据（已同步到云端）':'已清空全部数据');
 });
 });
 }

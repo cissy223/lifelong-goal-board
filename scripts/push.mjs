@@ -37,6 +37,9 @@ function token() {
 }
 
 async function api(p, opts = {}) {
+  let lastErr;
+  for (let attempt = 0; attempt < 3; attempt++) {
+  try {
   const r = await fetch(GH + p, {
     ...opts,
     headers: {
@@ -50,8 +53,11 @@ async function api(p, opts = {}) {
   const t = await r.text();
   let d = null;
   try { d = JSON.parse(t); } catch {}
-  if (!r.ok) throw new Error('GitHub ' + opts.method || 'GET' + ' ' + p + ' -> ' + r.status + ' ' + (t || '').slice(0, 300));
+  if (!r.ok) throw new Error((opts.method || 'GET') + ' ' + p + ' -> ' + r.status + ' ' + (t || '').slice(0, 300));
   return d;
+  } catch (e) { lastErr = e; await new Promise(res => setTimeout(res, 1500 * (attempt + 1))); }
+  }
+  throw lastErr;
 }
 
 const files = [];

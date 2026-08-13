@@ -218,6 +218,17 @@ textarea{resize:vertical}
 }
 ::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-thumb{background:#c6d2be;border-radius:99px}
+
+/* 重要倒计时 */
+.cd-card .cd-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;cursor:pointer;background:#fff}
+.cd-card .cd-item.done{opacity:.55}
+.cd-card .cd-item.cd-today{background:rgba(76,154,106,.08);border-color:var(--green)}
+.cd-card .cd-item.cd-past{opacity:.7}
+.cd-info{flex:1;min-width:0}
+.cd-info b{display:block;font-size:.88rem}
+.cd-info span{color:var(--muted);font-size:.75rem}
+.cd-actions{display:flex;gap:6px;flex:none}
+.cd-hidden{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
 </style>
 </head>
 <body>
@@ -326,7 +337,7 @@ const short=s=>String(s).length>24?String(s).slice(0,24)+'…':String(s);
 const nowStamp=()=>{const d=new Date();return fmt(d)+' '+pad(d.getHours())+':'+pad(d.getMinutes());};
 /* ========== 存储 ========== */
 let DB=null;
-const state={tab:'today',calY:new Date().getFullYear(),calM:new Date().getMonth(),weekStart:startOfWeek(new Date())};
+const state={tab:'today',calY:new Date().getFullYear(),calM:new Date().getMonth(),weekStart:startOfWeek(new Date()),showHiddenEvents:false};
 function defaultSettings(){return {autoDefer:true,rewards:[
 {id:'r1',name:'7天大餐',icon:'meal',track:'streak',threshold:7},
 {id:'r2',name:'130天国内游',icon:'car',track:'streak',threshold:130},
@@ -334,7 +345,7 @@ function defaultSettings(){return {autoDefer:true,rewards:[
 ],kw:KW,sync:{enabled:false,key:'',lastSyncAt:null,serverUpdatedAt:0}};}
 function emptyState(){
 const T=todayStr();
-return {goals:[],tasks:[],checkins:[],settings:defaultSettings(),meta:{createdAt:Date.now(),updatedAt:Date.now(),lastAutoDeferDate:T}};
+return {goals:[],tasks:[],checkins:[],events:[],settings:defaultSettings(),meta:{createdAt:Date.now(),updatedAt:Date.now(),lastAutoDeferDate:T}};
 }
 function migrate(raw){
 const d=(raw&&typeof raw==='object')?raw:{};
@@ -358,6 +369,7 @@ id:c.id||uid(),date:String(c.date||todayStr()),taskId:c.taskId||null,type:['感�
 content:String(c.content||''),evaluation:String(c.evaluation||''),suggestions:Array.isArray(c.suggestions)?c.suggestions:[],
 themes:Array.isArray(c.themes)?c.themes:[],cross:String(c.cross||''),createdAt:c.createdAt||Date.now()
 })),
+events:(Array.isArray(d.events)?d.events:[]).map(e=>({id:e.id||uid(),title:String(e.title||'未命名事件'),date:String(e.date||todayStr()),done:!!e.done,createdAt:e.createdAt||Date.now(),updatedAt:e.updatedAt||Date.now()})),
 settings:Object.assign(defaultSettings(),(d.settings&&typeof d.settings==='object')?d.settings:{}),
 meta:Object.assign({createdAt:Date.now(),updatedAt:Date.now(),lastAutoDeferDate:null},(d.meta&&typeof d.meta==='object')?d.meta:{})
 };
@@ -578,7 +590,7 @@ const left=overdue.length+dueToday.length;
 const bIcon=night?'moon':'sun';
 const bTitle=night?'深夜 '+h+' 点，还有 '+left+' 件事没做完':(left>0?'求上进的一天：'+doneToday+' 已完成，还有 '+left+' 件待办':'今天全部清空，求上进满分！');
 return '<section class="banner '+(night?'night':'day')+'"><div class="banner-ribbon"></div><span class="b-ic">'+icon(bIcon)+'</span>'+
-'<h1>'+bTitle+'</h1><p>'+quote()+'</p></section>'+
+'<h1>'+bTitle+'</h1><p>'+quote()+'</p></section>'+countdownHtml()+
 badgesHtml()+
 layersHtml()+
 '<section class="sec"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('alert')+'待办组 <span style="background:var(--danger);color:#fff;border-radius:99px;font-size:.72rem;padding:1px 9px">'+(overdue.length+dueToday.length)+'</span></h2>'+
@@ -971,6 +983,57 @@ showToast(syncEnabled()?'已清空全部数据（已同步到云端）':'已清�
 });
 }
 function setAutoDefer(v){DB.settings.autoDefer=v;save();showToast(v?'已开启自动顺延':'已关闭自动顺延');}
+/* ========== 重要倒计时 ========== */
+let evId=null;
+function countdownHtml(){
+const T=todayStr();
+const list=[...DB.events].sort((a,b)=>a.date.localeCompare(b.date));
+const active=list.filter(e=>!e.done);
+const hidden=list.filter(e=>e.done);
+const row=e=>{
+const days=daysBetween(T,e.date);
+const dText=days>0?'还有 '+days+' 天':(days===0?'就是今天！':'已过 '+(-days)+' 天');
+const cls=days===0?' cd-today':(days<0?' cd-past':'');
+return '<div class="cd-item'+(e.done?' done':'')+cls+'" onclick="App.editEvent(\''+e.id+'\')">'+
+'<div class="cd-info"><b>'+esc(e.title)+'</b><span>'+e.date+' · '+dText+'</span></div>'+
+'<div class="cd-actions">'+
+(e.done?'<button class="btn sm" onclick="event.stopPropagation();App.undoneEvent(\''+e.id+'\')">'+icon('refresh')+'恢复</button>':'<button class="btn sm primary" onclick="event.stopPropagation();App.doneEvent(\''+e.id+'\')">'+icon('check')+'完成</button>')+
+'<button class="btn sm" onclick="event.stopPropagation();App.editEvent(\''+e.id+'\')">'+icon('edit')+'</button>'+
+'</div></div>';
+};
+return '<section class="card cd-card"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('flag')+'重要倒计时 <button class="btn sm primary" style="margin-left:auto" onclick="App.eventModal(\'\')">'+icon('plus')+'添加</button></h2>'+
+(active.length?active.map(row).join(''):'<div class="empty">还没有重要事件，点击「添加」记一个倒计时</div>')+
+(hidden.length?'<div class="cd-hidden"><button class="btn sm" onclick="App.toggleHiddenEvents()">已隐藏 '+hidden.length+' 个</button>'+(state.showHiddenEvents?hidden.map(row).join(''):'')+'</div>':'')+
+'</section>';
+}
+function eventModal(id){
+evId=id||null;
+const e=id?DB.events.find(x=>x.id===id):null;
+openModal('<h3>'+icon('flag')+'重要事件'+(e?'（编辑）':'')+'</h3>'+
+'<label>名称 *</label><input id="ev-title" maxlength="40" value="'+esc(e?e.title:'')+'" placeholder="如：体检、考试、纪念日">'+
+'<label>日期</label><input type="date" id="ev-date" value="'+(e?e.date:todayStr())+'">'+
+'<div class="md-actions">'+(e?'<button class="btn danger" onclick="App.delEvent()">'+icon('trash')+'删除</button>':'')+
+'<button class="btn" onclick="App.closeModal()">取消</button>'+
+'<button class="btn primary" onclick="App.saveEvent()">保存</button></div>');
+setTimeout(()=>{const el=$('#ev-title');if(el)el.focus();},50);
+}
+function editEvent(id){eventModal(id);}
+function saveEvent(){
+const title=$('#ev-title').value.trim();
+if(!title){showToast('请输入事件名称');return;}
+const date=$('#ev-date').value;
+if(!date){showToast('请选择日期');return;}
+if(evId){const e=DB.events.find(x=>x.id===evId);if(e){e.title=title;e.date=date;e.updatedAt=Date.now();}}
+else{DB.events.push({id:uid(),title:title,date:date,done:false,createdAt:Date.now(),updatedAt:Date.now()});}
+closeModal();save();render();showToast('已保存');
+}
+function delEvent(){
+const e=DB.events.find(x=>x.id===evId);if(!e)return;
+confirmModal('删除事件','确定删除「'+esc(e.title)+'」？','删除').then(ok=>{if(!ok)return;DB.events=DB.events.filter(x=>x.id!==evId);closeModal();save();render();showToast('已删除');});
+}
+function doneEvent(id){const e=DB.events.find(x=>x.id===id);if(!e)return;e.done=true;e.updatedAt=Date.now();save();render();showToast('已完成并隐藏');}
+function undoneEvent(id){const e=DB.events.find(x=>x.id===id);if(!e)return;e.done=false;e.updatedAt=Date.now();save();render();showToast('已恢复');}
+function toggleHiddenEvents(){state.showHiddenEvents=!state.showHiddenEvents;render();}
 /* ========== 渲染 / 路由 ========== */
 function renderSidebar(){
 $('#nav').innerHTML=TABS.map(t=>'<button class="nav-i '+(state.tab===t[0]?'active':'')+'" onclick="App.nav(\''+t[0]+'\')">'+icon(t[2])+'<span>'+t[1]+'</span></button>').join('');
@@ -1021,6 +1084,7 @@ checkinModal:checkinModal,detectCk:detectCk,submitCheckin:submitCheckin,
 exportJSON:exportJSON,copyJSON:copyJSON,openExportModal:openExportModal,copyArea:copyArea,downloadTxt:downloadTxt,
 importFile:importFile,pasteImport:pasteImport,doPasteImport:doPasteImport,
 clearAll:clearAll,setAutoDefer:setAutoDefer,
+eventModal:eventModal,saveEvent:saveEvent,delEvent:delEvent,doneEvent:doneEvent,undoneEvent:undoneEvent,toggleHiddenEvents:toggleHiddenEvents,editEvent:editEvent,
 closeModal:closeModal,
 syncNow:syncNow,setSyncEnabled:setSyncEnabled,setSyncKey:setSyncKey,
 scrollTask(id){state.tab='today';render();setTimeout(()=>{const el=document.getElementById('tk-'+id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.transition='box-shadow .4s';el.style.boxShadow='0 0 0 4px rgba(76,154,106,.35)';setTimeout(()=>{el.style.boxShadow='';},1600);}},60);}

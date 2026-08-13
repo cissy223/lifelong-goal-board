@@ -133,9 +133,9 @@ textarea{resize:vertical}
 .g-bars{margin-top:12px}
 .g-bar-title{font-size:.8rem;color:var(--muted);margin-bottom:4px}
 .chart{width:100%;height:84px}
-.chart .bar{fill:var(--green)}
-.chart .bar.off{fill:var(--line)}
-.chart .bar[data-today]{fill:var(--amber)}
+.chart .cb{fill:var(--green)}
+.chart .cb.off{fill:var(--line)}
+.chart .cb[data-today]{fill:var(--amber)}
 .chart .bar-n{font-size:10px;fill:var(--muted);text-anchor:middle}
 .chart .bar-w{font-size:10px;fill:var(--muted);text-anchor:middle}
 .g-done{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line)}
@@ -643,7 +643,7 @@ const max=Math.max(1,...days.map(d=>d.n));
 let bars='';
 days.forEach((d,i)=>{
 const x=4+i*40,h=Math.round(d.n/max*54)+4,y=72-h;
-bars+='<g><rect x="'+x+'" y="'+y+'" width="30" height="'+h+'" rx="4" class="bar '+(d.n?'':'off')+'"'+(d.ds===todayStr()?' data-today':'')+'/><text x="'+(x+15)+'" y="66" text-anchor="middle" class="bar-n">'+(d.n||'')+'</text><text x="'+(x+15)+'" y="82" text-anchor="middle" class="bar-w">'+d.w+'</text></g>';
+bars+='<g><rect x="'+x+'" y="'+y+'" width="30" height="'+h+'" rx="4" class="cb '+(d.n?'':'off')+'"'+(d.ds===todayStr()?' data-today':'')+'/><text x="'+(x+15)+'" y="66" text-anchor="middle" class="bar-n">'+(d.n||'')+'</text><text x="'+(x+15)+'" y="82" text-anchor="middle" class="bar-w">'+d.w+'</text></g>';
 });
 return '<svg class="chart" viewBox="0 0 280 84">'+bars+'</svg>';
 }

@@ -177,10 +177,10 @@ textarea{resize:vertical}
 .cal-hbody{flex:1;position:relative;border-left:1px solid var(--line)}
 .cal-now{position:absolute;left:54px;right:0;height:2px;background:var(--danger);z-index:6;pointer-events:none}
 .cal-now::before{content:'';position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--danger)}
-.cal-block{position:absolute;left:6px;right:6px;border-left:4px solid var(--c,#4C9A6A);background:var(--card2);border-radius:8px;padding:2px 6px;font-size:.75rem;overflow:hidden;cursor:pointer;box-shadow:var(--shadow);z-index:2}
-.cal-block:hover{filter:brightness(.96)}
-.cal-block b{display:block;font-size:.78rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cal-block small{color:var(--muted);font-size:.68rem}
+.cal-block{position:absolute;left:6px;right:6px;border-left:4px solid rgba(255,255,255,.4);background:var(--c,#4C9A6A);border-radius:8px;padding:2px 6px;font-size:.75rem;overflow:hidden;cursor:pointer;box-shadow:var(--shadow);z-index:2;color:#fff}
+.cal-block:hover{filter:brightness(.92)}
+.cal-block b{display:block;font-size:.78rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
+.cal-block small{color:rgba(255,255,255,.85);font-size:.68rem}
 .cal-block.done{opacity:.55}
 #modal{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:16px}
 #modal.show{display:flex}
@@ -883,25 +883,42 @@ return '<section class="card">'+calHead(fmt(ws)+' ~ '+fmt(addDays(ws,6)))+'<div 
 function viewCalDay(){
 const ds=state.calD;
 const d=parseD(ds);
-const tasks=tasksOnDay(ds);
-const all=tasks.filter(t=>!t.startTime&&!t.endTime).sort((a,b)=>a.priority-b.priority);
-const timed=tasks.filter(t=>t.startTime||t.endTime).sort((a,b)=>(a.startTime||'').localeCompare(b.startTime||''));
-const allHtml=all.length?all.map(t=>'<div class="cal-block'+(t.status==='done'?' done':'')+'" style="--c:'+THEME_COLOR[t.category]+'" onclick="App.editTask(\''+t.id+'\')"><b>'+esc(t.title)+'</b></div>').join(''):'<div class="empty" style="padding:4px">该日暂无全天任务</div>';
+const nextDs=fmt(addDays(d,1));
+const dTasks=tasksOnDay(ds);
+const nTasks=tasksOnDay(nextDs);
+const all=dTasks.filter(t=>!t.startTime&&!t.endTime).sort((a,b)=>a.priority-b.priority);
+const tm=t=>timeMin(t.startTime||t.endTime||'09:00');
+const offAbs=(base,m)=>base+m-360;
+const timed=[...dTasks.filter(t=>(t.startTime||t.endTime)&&tm(t)>=360).map(t=>({t,base:0})),
+...nTasks.filter(t=>(t.startTime||t.endTime)&&tm(t)<360).map(t=>({t,base:1440}))]
+.sort((a,b)=>offAbs(a.base,tm(a.t))-offAbs(b.base,tm(b.t)));
+const allHtml=all.length?all.map(t=>'<div class="cal-block'+(t.status==='done'?' done':'')+'" style="--c:'+THEME_COLOR[t.category]+'" onclick="App.editTask(\''+t.id+'\')"><b>'+esc(t.title)+'</b></div>').join(''):'<div class="empty" style="padding:4px">该日暂无不定时任务</div>';
 let hours='';
-for(let h=0;h<24;h++)hours+='<div class="cal-hour" onclick="App.addTask({date:\''+ds+'\',time:\''+pad(h)+':00\'})"><span class="cal-hl">'+pad(h)+':00</span><div class="cal-hbody"></div></div>';
-const blocks=timed.map(t=>{
-const sm=timeMin(t.startTime||t.endTime||'09:00');
-let em=timeMin(t.endTime||t.startTime||'10:00');
-if(em<=sm)em=sm+60;
-if(em>1440)em=1440;
-const top=sm*0.8,h=Math.max((em-sm)*0.8,18);
+for(let r=0;r<24;r++){
+const h=(r+6)%24;
+const hd=r<18?ds:nextDs;
+hours+='<div class="cal-hour" onclick="App.addTask({date:\''+hd+'\',time:\''+pad(h)+':00\'})"><span class="cal-hl">'+pad(h)+':00</span><div class="cal-hbody"></div></div>';
+}
+const blocks=timed.map(e=>{
+const t=e.t,base=e.base;
+const sm=tm(t);
+let em;
+if(!t.endTime)em=sm+60;
+else{em=timeMin(t.endTime);if(em<sm)em+=1440;if(em===sm)em=sm+60;}
+const top=offAbs(base,sm)*0.8;
+const bottom=Math.min(offAbs(base,em),1440)*0.8;
+const h=Math.max(bottom-top,18);
 return '<div class="cal-block'+(t.status==='done'?' done':'')+'" style="--c:'+THEME_COLOR[t.category]+';top:'+top+'px;height:'+h+'px" onclick="App.editTask(\''+t.id+'\')"><b>'+esc(t.title)+'</b><small>'+esc(t.startTime||'')+(t.endTime?' ~ '+esc(t.endTime):'')+'</small></div>';
 }).join('');
 let now='';
-if(ds===todayStr()){const n=new Date();now='<div class="cal-now" style="top:'+((n.getHours()*60+n.getMinutes())*0.8)+'px"></div>';}
+const T=todayStr();
+const nd=new Date();
+const mn=nd.getHours()*60+nd.getMinutes();
+if(T===ds&&mn>=360)now='<div class="cal-now" style="top:'+((mn-360)*0.8)+'px"></div>';
+else if(T===nextDs&&mn<360)now='<div class="cal-now" style="top:'+((1440+mn-360)*0.8)+'px"></div>';
 return '<section class="card">'+calHead(d.getFullYear()+' 年 '+(d.getMonth()+1)+' 月 '+d.getDate()+' 日 · 周'+WEEK_CN[d.getDay()])+
 '<div class="cal-day">'+
-'<div class="cal-all"><div class="cal-all-t">全天</div>'+allHtml+'</div>'+
+'<div class="cal-all"><div class="cal-all-t">不定时</div>'+allHtml+'</div>'+
 '<div class="cal-hours">'+hours+blocks+now+'</div>'+
 '</div></section>';
 }

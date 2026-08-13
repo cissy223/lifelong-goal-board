@@ -3,3 +3,6 @@ build/
 .pnpm-store/
 *.log
 .DS_Store
+# ������Կ/��ʱ�ļ�
+secrets.env
+*.tmp

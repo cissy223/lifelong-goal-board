@@ -11,3 +11,6 @@
 
 ## 部署说明
 仓库已连接到 Netlify（Build），每次 push 自动部署；函数由 Netlify Build 自动打包（package.json 声明 @netlify/blobs）。
+
+
+> 自动部署验证：2026-08-13T06:58:11.403Z — GitHub → Netlify 构建链路已打通。

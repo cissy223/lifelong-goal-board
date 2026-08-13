@@ -88,7 +88,7 @@ textarea{resize:vertical}
 .badge.on .bar i{background:linear-gradient(90deg,#e8a33d,#e86a8f)}
 .layers{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
 .layer{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px}
-.layer h4{font-size:.85rem;display:flex;align-items:center;gap:6px;margin-bottom:8px;color:var(--green)}
+.layer h4{font-size:.85rem;display:flex;align-items:center;gap:6px;margin-bottom:8px;color:var(--ink)}
 .layer h4 .ic{width:15px;height:15px}
 .li{display:flex;align-items:center;gap:6px;padding:6px 4px;border-bottom:1px dashed var(--line);font-size:.82rem;cursor:pointer}
 .li:last-child{border-bottom:none}
@@ -230,6 +230,8 @@ textarea{resize:vertical}
 .cd-actions{display:flex;gap:6px;flex:none}
 .cd-hidden{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
 .todo.today-done{opacity:.62}
+.cd-card{margin-top:12px}
+.layers{margin-top:12px}
 </style>
 </head>
 <body>
@@ -568,17 +570,17 @@ const ws=state.weekStart,we=addDays(ws,6);
 const wtasks=DB.tasks.filter(t=>t.status==='todo'&&t.dueDate&&t.dueDate>=fmt(ws)&&t.dueDate<=fmt(we)).sort((a,b)=>(a.priority-b.priority)||a.dueDate.localeCompare(b.dueDate));
 const ttasks=DB.tasks.filter(t=>t.status==='todo'&&dueOn(t,T)).sort((a,b)=>(a.priority-b.priority)||(a.dueDate||'').localeCompare(b.dueDate||''));
 return '<section class="layers">'+
-'<div class="layer"><h4>'+icon('target')+'本月目标</h4>'+
+'<div class="layer"><h4>'+icon('target')+'本月目标<button class="btn sm" style="margin-left:auto" onclick="App.goalManage()">'+icon('edit')+'</button></h4>'+
 (mgoals.length?mgoals.slice(0,4).map(g=>{
 const pct=clamp(Math.round(g.current/g.target*100),0,100);
 return '<div class="li" onclick="App.editGoal(\''+g.id+'\')"><span class="dot" style="background:'+THEME_COLOR[g.theme]+'"></span><span class="t">'+esc(g.title)+'</span><small>'+pct+'%</small></div>'+
 '<div class="bar" style="margin:0 4px 6px 18px"><i style="width:'+pct+'%"></i></div>';
 }).join(''):'<div class="empty">本月暂无目标</div>')+
 '</div>'+
-'<div class="layer"><h4>'+icon('week')+'本周目标 <small style="font-weight:400;color:var(--muted)">'+fmt(ws)+'~'+fmt(we)+'</small></h4>'+
+'<div class="layer"><h4>'+icon('week')+'本周目标 <small style="font-weight:400;color:var(--muted)">'+fmt(ws)+'~'+fmt(we)+'</small><button class="btn sm" style="margin-left:auto" onclick="App.taskManage(\'week\')">'+icon('edit')+'</button></h4>'+
 (wtasks.length?wtasks.slice(0,5).map(t=>'<div class="li" onclick="App.editTask(\''+t.id+'\')"><span class="tag" style="background:'+(t.priority===0?'#D64545':t.priority===1?'#D9922E':'#8b95a3')+';padding:1px 6px">'+PRI[t.priority]+'</span><span class="t">'+esc(t.title)+'</span><small>'+t.dueDate.slice(5)+'</small></div>').join(''):'<div class="empty">本周暂无计划</div>')+
 '</div>'+
-'<div class="layer"><h4>'+icon('today')+'今日待办 <small style="font-weight:400;color:var(--muted)">'+ttasks.length+' 项</small></h4>'+
+'<div class="layer"><h4>'+icon('today')+'今日待办 <small style="font-weight:400;color:var(--muted)">'+ttasks.length+' 项</small><button class="btn sm" style="margin-left:auto" onclick="App.taskManage(\'today\')">'+icon('edit')+'</button></h4>'+
 (ttasks.length?ttasks.slice(0,5).map(t=>{
 const od=t.dueDate&&t.dueDate<T;
 return '<div class="li" onclick="App.scrollTask(\''+t.id+'\')"><span class="dot" style="background:'+(od?'#D64545':'var(--green)')+'"></span><span class="t">'+esc(t.title)+'</span><small>'+(od?'逾期':'今日')+'</small></div>';
@@ -610,11 +612,7 @@ layersHtml()+
 '</section>'+
 '<section class="sec"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('smile')+'已完成 <span style="background:var(--green);color:#fff;border-radius:99px;font-size:.72rem;padding:1px 9px">'+done.length+'</span></h2>'+
 (done.length?done.map(doneRow).join(''):'<div class="empty">完成第一件事，来这里领取夸夸</div>')+
-'</section>'+
-'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">'+
-'<button class="btn primary" onclick="App.addTask(\'\')">'+icon('plus')+'新增计划</button>'+
-'<button class="btn" onclick="App.checkinModal(\'\')">'+icon('spark')+'打卡成果</button>'+
-'</div>';
+'</section>';
 }
 function ring(pct,color,cur,target,unit){
 const r=40,c=2*Math.PI*r,off=c*(1-pct/100);
@@ -1130,10 +1128,26 @@ if(gid){const e=DB.goals.find(x=>x.id===gid);if(e)Object.assign(e,data);}
 else{DB.goals.push(Object.assign({id:uid()},data));}
 closeModal();save();render();showToast('已保存目标');
 }
-function delGoal(){
-if(!gid)return;
-const e=DB.goals.find(x=>x.id===gid);if(!e)return;
-confirmModal('删除目标','确定删除「'+esc(e.title)+'」？关联任务不会被删除。','删除').then(ok=>{if(!ok)return;DB.goals=DB.goals.filter(x=>x.id!==gid);closeModal();save();render();showToast('已删除目标');});
+function delGoal(id){
+const target=id||gid;
+if(!target)return;
+const e=DB.goals.find(x=>x.id===target);if(!e)return;
+confirmModal('删除目标','确定删除「'+esc(e.title)+'」？关联任务不会被删除。','删除').then(ok=>{if(!ok)return;DB.goals=DB.goals.filter(x=>x.id!==target);closeModal();save();render();showToast('已删除目标');});
+}
+/* ========== 层管理弹窗 ========== */
+function goalManage(){
+openModal('<h3>'+icon('target')+'目标管理</h3>'+
+(DB.goals.length?DB.goals.map(g=>'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line);cursor:pointer" onclick="App.goalModal(\''+g.id+'\')"><span class="dot" style="background:'+THEME_COLOR[g.theme]+'"></span><div style="flex:1;min-width:0"><b style="font-size:.88rem">'+esc(g.title)+'</b><div style="font-size:.72rem;color:var(--muted)">'+g.theme+' · '+clamp(Math.round(g.current/g.target*100),0,100)+'%</div></div><button class="btn sm" onclick="event.stopPropagation();App.goalModal(\''+g.id+'\')">'+icon('edit')+'</button><button class="btn sm danger" onclick="event.stopPropagation();App.delGoal(\''+g.id+'\')">'+icon('trash')+'</button></div>').join(''):'<div class="empty">暂无目标</div>')+
+'<button class="btn primary block" style="margin-top:8px" onclick="App.goalModal(\'\')">'+icon('plus')+'新增目标</button>'+
+'<div class="md-actions"><button class="btn" onclick="App.closeModal()">关闭</button></div>');
+}
+function taskManage(mode){
+const ws=state.weekStart,we=addDays(ws,6);
+const list=DB.tasks.filter(t=>t.status==='todo'&&(mode==='week'?(t.dueDate&&t.dueDate>=fmt(ws)&&t.dueDate<=fmt(we)):dueOn(t,todayStr()))).sort((a,b)=>(a.priority-b.priority)||(a.dueDate||'').localeCompare(b.dueDate||''));
+openModal('<h3>'+icon(mode==='week'?'week':'today')+'任务管理</h3>'+
+(list.length?list.map(t=>'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line);cursor:pointer" onclick="App.editTask(\''+t.id+'\')"><span class="tag" style="background:'+(t.priority===0?'#D64545':t.priority===1?'#D9922E':t.priority===2?'#E4A11B':'#8b95a3')+';padding:1px 6px">'+PRI[t.priority]+'</span><div style="flex:1;min-width:0"><b style="font-size:.88rem">'+esc(t.title)+'</b><div style="font-size:.72rem;color:var(--muted)">'+(t.dueDate||'')+(t.period?' · 每日重复':'')+'</div></div><button class="btn sm" onclick="event.stopPropagation();App.editTask(\''+t.id+'\')">'+icon('edit')+'</button></div>').join(''):'<div class="empty">暂无任务</div>')+
+'<button class="btn primary block" style="margin-top:8px" onclick="App.addTask(\'\')">'+icon('plus')+'新增计划</button>'+
+'<div class="md-actions"><button class="btn" onclick="App.closeModal()">关闭</button></div>');
 }
 /* ========== 渲染 / 路由 ========== */
 function renderSidebar(){
@@ -1188,6 +1202,7 @@ clearAll:clearAll,setAutoDefer:setAutoDefer,
 eventModal:eventModal,saveEvent:saveEvent,delEvent:delEvent,doneEvent:doneEvent,undoneEvent:undoneEvent,toggleHiddenEvents:toggleHiddenEvents,editEvent:editEvent,
 goalModal:goalModal,editGoal:editGoal,saveGoal:saveGoal,delGoal:delGoal,
 badgeManage:badgeManage,badgeModal:badgeModal,saveBadge:saveBadge,delBadge:delBadge,
+goalManage:goalManage,taskManage:taskManage,
 closeModal:closeModal,
 syncNow:syncNow,setSyncEnabled:setSyncEnabled,setSyncKey:setSyncKey,
 scrollTask(id){state.tab='today';render();setTimeout(()=>{const el=document.getElementById('tk-'+id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.transition='box-shadow .4s';el.style.boxShadow='0 0 0 4px rgba(76,154,106,.35)';setTimeout(()=>{el.style.boxShadow='';},1600);}},60);}

@@ -144,9 +144,9 @@ textarea{resize:vertical}
 .g-done-i em{color:var(--green);font-style:normal;font-size:.78rem;margin-left:auto}
 .cal-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .cal-head b{font-size:1.05rem;flex:1}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-grid{display:grid;grid-template-columns:auto repeat(7,1fr);gap:6px}
 .cal-w{text-align:center;font-size:.75rem;color:var(--muted);padding:2px 0}
-.cal-cell{min-height:72px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:4px;cursor:pointer;position:relative;transition:.12s}
+.cal-cell{min-height:72px;min-width:0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:4px;cursor:pointer;position:relative;transition:.12s}
 .cal-cell:hover{border-color:var(--green);box-shadow:var(--shadow)}
 .cal-cell.dim{opacity:.45}
 .cal-cell.today{border-color:var(--green);background:#f2f8f1;box-shadow:0 0 0 1px var(--green)}
@@ -154,16 +154,34 @@ textarea{resize:vertical}
 .cal-cell.today .cal-d{color:var(--green)}
 .cal-chip{font-size:.68rem;padding:1px 5px;border-radius:6px;background:var(--card2);border-left:3px solid var(--c,#4C9A6A);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
 .cal-more{font-size:.68rem;color:var(--muted);margin-top:2px;text-align:center}
-#pop{position:fixed;z-index:200;width:290px;max-height:70vh;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(47,58,46,.2);padding:10px;display:none}
-.pop-t{font-size:.85rem;font-weight:700;margin-bottom:8px;color:var(--green)}
-.pop-i{display:flex;gap:8px;align-items:center;padding:7px 2px;border-bottom:1px dashed var(--line);font-size:.82rem}
-.pop-i:last-of-type{border-bottom:none}
-.pop-i b{display:block;font-size:.85rem}
-.pop-i small{color:var(--muted);font-size:.72rem}
-.pop-a{margin-left:auto;display:flex;gap:4px}
-.pop-a button{padding:4px 6px;border-radius:8px;border:1px solid var(--line);color:var(--muted)}
-.pop-a button:hover{color:var(--green);border-color:var(--green)}
-.pop-empty{color:var(--muted);text-align:center;padding:14px;font-size:.8rem}
+.cal-tabs{display:inline-flex;gap:2px;background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:2px}
+.cal-tabs button{padding:4px 10px;font-size:.8rem;border-radius:7px;color:var(--muted)}
+.cal-tabs button.on{background:var(--green);color:#fff;font-weight:600}
+.cal-wk{display:flex;align-items:center;justify-content:center;min-width:36px;white-space:nowrap;background:var(--card2);border:1px solid var(--line);border-radius:10px;font-size:.68rem;color:var(--muted);cursor:pointer;transition:.12s;min-height:56px;align-self:stretch}
+.cal-wk:hover{border-color:var(--green);color:var(--green);box-shadow:var(--shadow)}
+.cal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:4px}
+.cal-wcol{min-height:140px;min-width:0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:4px;cursor:pointer;position:relative;transition:.12s}
+.cal-wcol:hover{border-color:var(--green);box-shadow:var(--shadow)}
+.cal-wcol.today{border-color:var(--green);background:#f2f8f1;box-shadow:0 0 0 1px var(--green)}
+.cal-wd{font-size:.75rem;color:var(--muted);font-weight:600;display:block;padding:2px 4px}
+.cal-wcol.today .cal-wd{color:var(--green)}
+.cal-day{margin-top:4px}
+.cal-all{border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;margin-bottom:8px}
+.cal-all-t{font-size:.75rem;color:var(--muted);font-weight:600;margin-bottom:4px}
+.cal-all .cal-block{position:static;width:100%;margin-top:4px}
+.cal-all .cal-block:first-of-type{margin-top:0}
+.cal-hours{position:relative}
+.cal-hour{display:flex;height:48px;border-bottom:1px solid #eef2e8;cursor:pointer}
+.cal-hour:hover{background:rgba(76,154,106,.05)}
+.cal-hl{width:46px;flex:none;font-size:.68rem;color:var(--muted);text-align:right;padding-right:8px;padding-top:2px;user-select:none}
+.cal-hbody{flex:1;position:relative;border-left:1px solid var(--line)}
+.cal-now{position:absolute;left:54px;right:0;height:2px;background:var(--danger);z-index:6;pointer-events:none}
+.cal-now::before{content:'';position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--danger)}
+.cal-block{position:absolute;left:6px;right:6px;border-left:4px solid var(--c,#4C9A6A);background:var(--card2);border-radius:8px;padding:2px 6px;font-size:.75rem;overflow:hidden;cursor:pointer;box-shadow:var(--shadow);z-index:2}
+.cal-block:hover{filter:brightness(.96)}
+.cal-block b{display:block;font-size:.78rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-block small{color:var(--muted);font-size:.68rem}
+.cal-block.done{opacity:.55}
 #modal{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:16px}
 #modal.show{display:flex}
 .ov{position:absolute;inset:0;background:rgba(47,58,46,.4)}
@@ -219,7 +237,7 @@ textarea{resize:vertical}
 .g-head .g-tags .btn{margin-left:0!important}
 .stat-grid{grid-template-columns:repeat(2,1fr)}
 .cal-cell{min-height:56px}
-#pop{width:240px}
+.cal-wcol{min-height:120px}
 }
 ::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-thumb{background:#c6d2be;border-radius:99px}
@@ -297,7 +315,6 @@ textarea{resize:vertical}
 <aside id="rail"></aside>
 </div>
 <nav id="tabbar"></nav>
-<div id="pop"></div>
 <div id="modal"></div>
 <div id="toast"></div>
 <script>
@@ -344,10 +361,12 @@ const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 const icon=n=>'<svg class="ic" aria-hidden="true"><use href="#i-'+n+'"/></svg>';
 const short=s=>String(s).length>24?String(s).slice(0,24)+'…':String(s);
+const timeMin=s=>{const p=String(s||'').split(':');return (Number(p[0])||0)*60+(Number(p[1])||0);};
+const timeAdd=(s,m)=>{const p=String(s||'').split(':');const n=((Number(p[0])||0)*60+(Number(p[1])||0)+m)%1440;return pad(Math.floor(n/60))+':'+pad(n%60);};
 const nowStamp=()=>{const d=new Date();return fmt(d)+' '+pad(d.getHours())+':'+pad(d.getMinutes());};
 /* ========== 存储 ========== */
 let DB=null;
-const state={tab:'today',calY:new Date().getFullYear(),calM:new Date().getMonth(),weekStart:startOfWeek(new Date()),showHiddenEvents:false};
+const state={tab:'today',calY:new Date().getFullYear(),calM:new Date().getMonth(),calView:'month',calD:todayStr(),weekStart:startOfWeek(new Date()),showHiddenEvents:false};
 function defaultSettings(){return {autoDefer:true,rewards:[
 {id:'r1',name:'7天大餐',icon:'meal',track:'streak',threshold:7},
 {id:'r2',name:'130天国内游',icon:'car',track:'streak',threshold:130},
@@ -371,7 +390,7 @@ id:t.id||uid(),title:String(t.title||'未命名任务'),desc:String(t.desc||''),
 goalId:t.goalId||null,startDate:t.startDate||null,dueDate:t.dueDate||null,period:!!t.period,
 status:t.status==='done'?'done':'todo',priority:[0,1,2,3].includes(t.priority)?t.priority:1,
 progress:Number(t.progress)||0,summary:String(t.summary||''),review:String(t.review||''),deferCount:Number(t.deferCount)||0,
-checkins:Array.isArray(t.checkins)?t.checkins:[],doneDates:Array.isArray(t.doneDates)?t.doneDates:[],weekdays:Array.isArray(t.weekdays)?t.weekdays.map(Number).filter(n=>Number.isInteger(n)&&n>=0&&n<=6):[0,1,2,3,4,5,6],skipHolidays:!!t.skipHolidays,createdAt:t.createdAt||Date.now(),
+checkins:Array.isArray(t.checkins)?t.checkins:[],doneDates:Array.isArray(t.doneDates)?t.doneDates:[],weekdays:Array.isArray(t.weekdays)?t.weekdays.map(Number).filter(n=>Number.isInteger(n)&&n>=0&&n<=6):[0,1,2,3,4,5,6],skipHolidays:!!t.skipHolidays,startTime:t.startTime||null,endTime:t.endTime||null,createdAt:t.createdAt||Date.now(),
 completedAt:t.completedAt||null,updatedAt:t.updatedAt||Date.now()
 })),
 checkins:(Array.isArray(d.checkins)?d.checkins:[]).map(c=>({
@@ -465,16 +484,6 @@ function showToast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('s
 function openModal(html){const m=$('#modal');m.innerHTML='<div class="ov" onclick="App.closeModal()"></div><div class="md" onclick="event.stopPropagation()">'+html+'</div>';m.classList.add('show');}
 function closeModal(){$('#modal').classList.remove('show');$('#modal').innerHTML='';}
 function confirmModal(title,body,okText){return new Promise(res=>{openModal('<h3>'+icon('alert')+esc(title)+'</h3><p class="md-body">'+body+'</p><div class="md-actions"><button class="btn" onclick="App.closeModal();window.__cf(false)">取消</button><button class="btn primary" onclick="App.closeModal();window.__cf(true)">'+esc(okText||'确定')+'</button></div>');window.__cf=res;});}
-function openPop(anchor,html){
-const p=$('#pop');
-p.innerHTML=html;p.style.display='block';
-const r=anchor.getBoundingClientRect();
-const pw=p.offsetWidth,ph=p.offsetHeight;
-let x=r.left;if(x+pw>innerWidth-8)x=Math.max(8,innerWidth-pw-8);
-let y=r.bottom+6;if(y+ph>innerHeight-8)y=Math.max(8,r.top-ph-6);
-p.style.left=x+'px';p.style.top=y+'px';
-}
-function closePop(){$('#pop').style.display='none';$('#pop').innerHTML='';}
 function copyText(txt){
 return new Promise(res=>{
 function fb(){const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}ta.remove();res(ok);}
@@ -813,7 +822,27 @@ dlName='周报_'+fmt(state.weekStart);
 const text=buildWeekReport();
 openModal('<h3>'+icon('week')+'周报文本</h3><textarea class="code" id="wr" readonly style="min-height:260px">'+esc(text)+'</textarea><div class="md-actions"><button class="btn primary" onclick="App.copyArea(this)">'+icon('copy')+'一键复制</button><button class="btn" onclick="App.downloadTxt()">'+icon('download')+'下载 .txt</button></div>');
 }
+function calHead(title){
+const fd=state.calView==='day'?state.calD:todayStr();
+return '<div class="cal-head">'+
+'<button class="btn sm" onclick="App.calShift(-1)">'+icon('arrow-l')+'</button>'+
+'<b>'+title+'</b>'+
+'<button class="btn sm" onclick="App.calShift(1)">'+icon('arrow-r')+'</button>'+
+'<button class="btn sm" onclick="App.calToday()">今天</button>'+
+'<div class="cal-tabs">'+
+'<button class="'+(state.calView==='month'?'on':'')+'" onclick="App.calView(\'month\')">月</button>'+
+'<button class="'+(state.calView==='week'?'on':'')+'" onclick="App.calView(\'week\')">周</button>'+
+'<button class="'+(state.calView==='day'?'on':'')+'" onclick="App.calView(\'day\')">日</button>'+
+'</div>'+
+'<button class="btn sm primary" onclick="App.addTask(\''+fd+'\')">'+icon('plus')+'新增</button>'+
+'</div>';
+}
 function viewCal(){
+if(state.calView==='day')return viewCalDay();
+if(state.calView==='week')return viewCalWeek();
+return viewCalMonth();
+}
+function viewCalMonth(){
 const y=state.calY,m=state.calM;
 const first=new Date(y,m,1);
 const start=startOfWeek(first);
@@ -823,30 +852,58 @@ const d=addDays(start,i);
 const ds=fmt(d);
 const inM=d.getMonth()===m;
 const tasks=tasksOnDay(ds);
-cells+='<div class="cal-cell '+(inM?'':'dim')+' '+(ds===todayStr()?'today':'')+'" onclick="App.popDay(\''+ds+'\',this)">'+
+if(i%7===0)cells+='<button class="cal-wk" title="查看该周" onclick="App.calGoWeek(\''+fmt(d)+'\')">'+(d.getMonth()+1)+'/'+d.getDate()+'</button>';
+cells+='<div class="cal-cell '+(inM?'':'dim')+' '+(ds===todayStr()?'today':'')+'" onclick="App.calGoDay(\''+ds+'\')">'+
 '<span class="cal-d">'+d.getDate()+'</span>'+
 tasks.slice(0,3).map(t=>'<div class="cal-chip" style="--c:'+THEME_COLOR[t.category]+'">'+esc(short(t.title))+'</div>').join('')+
 (tasks.length>3?'<div class="cal-more">+'+ (tasks.length-3) +'</div>':'')+
 '</div>';
 }
-let heads='';WEEK_CN.forEach(w=>heads+='<div class="cal-w">周'+w+'</div>');
-return '<section class="card"><div class="cal-head">'+
-'<button class="btn sm" onclick="App.calShift(-1)">'+icon('arrow-l')+'</button>'+
-'<b>'+y+' 年 '+(m+1)+' 月</b>'+
-'<button class="btn sm" onclick="App.calShift(1)">'+icon('arrow-r')+'</button>'+
-'<button class="btn sm" onclick="App.calToday()">今天</button>'+
-'<button class="btn sm primary" onclick="App.addTask(\''+todayStr()+'\')">'+icon('plus')+'新增</button>'+
-'</div><div class="cal-grid">'+heads+cells+'</div></section>';
+let heads='<div class="cal-w"></div>';WEEK_CN.forEach(w=>heads+='<div class="cal-w">周'+w+'</div>');
+return '<section class="card">'+calHead(y+' 年 '+(m+1)+' 月')+'<div class="cal-grid">'+heads+cells+'</div></section>';
 }
-function popDay(ds,el){
+function viewCalWeek(){
+const ws=state.weekStart;
+let cols='';
+for(let i=0;i<7;i++){
+const d=addDays(ws,i);
+const ds=fmt(d);
 const tasks=tasksOnDay(ds);
-const html='<div class="pop-t">'+ds+' · 周'+WEEK_CN[parseD(ds).getDay()]+'</div>'+
-(tasks.length?tasks.map(t=>'<div class="pop-i"><span class="dot" style="background:'+THEME_COLOR[t.category]+';margin-top:5px"></span>'+
-'<div style="flex:1;min-width:0"><b>'+esc(t.title)+'</b><small>'+(t.status==='done'?'已完成':(t.period?periodWeekdays(t)+' · '+t.startDate+'~'+t.dueDate:'截止 '+t.dueDate))+'</small></div>'+
-(t.status==='todo'?'<div class="pop-a">'+(t.period&&(t.doneDates||[]).includes(ds)?'<button title="撤销今日" onclick="App.undoDone(\''+t.id+'\')">'+icon('refresh')+'</button>':'')+(t.period?'':'<button title="顺延" onclick="App.defer(\''+t.id+'\')">'+icon('defer')+'</button>')+'<button title="打卡验证" onclick="App.checkinModal(\''+t.id+'\')">'+icon('spark')+'</button></div>':'')+
-'</div>').join(''):'<div class="pop-empty">这一天没有计划</div>')+
-'<button class="btn primary block" style="margin-top:8px" onclick="App.addTask(\''+ds+'\')">'+icon('plus')+'新增计划</button>';
-openPop(el,html);
+const all=tasks.filter(t=>!t.startTime&&!t.endTime).sort((a,b)=>a.priority-b.priority);
+const timed=tasks.filter(t=>t.startTime||t.endTime).sort((a,b)=>(a.startTime||'99:99').localeCompare(b.startTime||'99:99'));
+const shown=all.concat(timed).slice(0,6);
+cols+='<div class="cal-wcol '+(ds===todayStr()?'today':'')+'" onclick="App.calGoDay(\''+ds+'\')">'+
+'<span class="cal-wd">周'+WEEK_CN[d.getDay()]+' '+(d.getMonth()+1)+'/'+d.getDate()+'</span>'+
+shown.map(t=>'<div class="cal-chip" style="--c:'+THEME_COLOR[t.category]+'">'+(t.startTime?'<em style="font-style:normal;color:var(--muted)">'+t.startTime+'</em> ':'')+esc(short(t.title))+'</div>').join('')+
+(tasks.length>6?'<div class="cal-more">+'+ (tasks.length-6) +'</div>':'')+
+'</div>';
+}
+return '<section class="card">'+calHead(fmt(ws)+' ~ '+fmt(addDays(ws,6)))+'<div class="cal-week">'+cols+'</div></section>';
+}
+function viewCalDay(){
+const ds=state.calD;
+const d=parseD(ds);
+const tasks=tasksOnDay(ds);
+const all=tasks.filter(t=>!t.startTime&&!t.endTime).sort((a,b)=>a.priority-b.priority);
+const timed=tasks.filter(t=>t.startTime||t.endTime).sort((a,b)=>(a.startTime||'').localeCompare(b.startTime||''));
+const allHtml=all.length?all.map(t=>'<div class="cal-block'+(t.status==='done'?' done':'')+'" style="--c:'+THEME_COLOR[t.category]+'" onclick="App.editTask(\''+t.id+'\')"><b>'+esc(t.title)+'</b></div>').join(''):'<div class="empty" style="padding:4px">该日暂无全天任务</div>';
+let hours='';
+for(let h=0;h<24;h++)hours+='<div class="cal-hour" onclick="App.addTask({date:\''+ds+'\',time:\''+pad(h)+':00\'})"><span class="cal-hl">'+pad(h)+':00</span><div class="cal-hbody"></div></div>';
+const blocks=timed.map(t=>{
+const sm=timeMin(t.startTime||t.endTime||'09:00');
+let em=timeMin(t.endTime||t.startTime||'10:00');
+if(em<=sm)em=sm+60;
+if(em>1440)em=1440;
+const top=sm*0.8,h=Math.max((em-sm)*0.8,18);
+return '<div class="cal-block'+(t.status==='done'?' done':'')+'" style="--c:'+THEME_COLOR[t.category]+';top:'+top+'px;height:'+h+'px" onclick="App.editTask(\''+t.id+'\')"><b>'+esc(t.title)+'</b><small>'+esc(t.startTime||'')+(t.endTime?' ~ '+esc(t.endTime):'')+'</small></div>';
+}).join('');
+let now='';
+if(ds===todayStr()){const n=new Date();now='<div class="cal-now" style="top:'+((n.getHours()*60+n.getMinutes())*0.8)+'px"></div>';}
+return '<section class="card">'+calHead(d.getFullYear()+' 年 '+(d.getMonth()+1)+' 月 '+d.getDate()+' 日 · 周'+WEEK_CN[d.getDay()])+
+'<div class="cal-day">'+
+'<div class="cal-all"><div class="cal-all-t">全天</div>'+allHtml+'</div>'+
+'<div class="cal-hours">'+hours+blocks+now+'</div>'+
+'</div></section>';
 }
 function viewMe(){
 const size=(localStorage.getItem(LS_KEY)||'').length;
@@ -936,15 +993,17 @@ const t=DB.tasks.find(x=>x.id===id);if(!t)return;
 if(t.period&&t.status==='todo'&&isPeriodDay(t,todayStr())){
 const T=todayStr();
 if(!(t.doneDates||[]).includes(T)){t.doneDates=(t.doneDates||[]).concat(T);if(t.goalId)goalAdd(t.goalId,1);}
-t.updatedAt=Date.now();settlePeriods();save();closePop();render();showToast('今日已完成，明天继续');return;
+t.updatedAt=Date.now();settlePeriods();save();render();showToast('今日已完成，明天继续');return;
 }
-t.status='done';t.progress=100;t.completedAt=nowStamp();t.updatedAt=Date.now();if(t.goalId)goalAdd(t.goalId,1);save();closePop();render();showToast('已完成，求上进！');
+t.status='done';t.progress=100;t.completedAt=nowStamp();t.updatedAt=Date.now();if(t.goalId)goalAdd(t.goalId,1);save();render();showToast('已完成，求上进！');
 }
-function defer(id){const t=DB.tasks.find(x=>x.id===id);if(!t)return;t.dueDate=fmt(addDays(new Date(),1));t.deferCount=(t.deferCount||0)+1;t.updatedAt=Date.now();save();closePop();render();showToast('已顺延到明天');}
+function defer(id){const t=DB.tasks.find(x=>x.id===id);if(!t)return;t.dueDate=fmt(addDays(new Date(),1));t.deferCount=(t.deferCount||0)+1;t.updatedAt=Date.now();save();render();showToast('已顺延到明天');}
 function taskModal(editId,prefill){
 const t=editId?DB.tasks.find(x=>x.id===editId):null;
 tid=editId||null;
-const d=prefill||todayStr();
+const pf=(prefill&&typeof prefill==='object')?prefill:{date:prefill||todayStr(),time:null};
+const d=pf.date;
+const pfEnd=pf.time?timeAdd(pf.time,60):'';
 const period=!!(t&&t.period);
 const wd=(t&&Array.isArray(t.weekdays))?t.weekdays:[1,2,3,4,5,6,0];
 openModal('<h3>'+icon(t?'edit':'plus')+(t?'编辑「'+esc(t.title)+'」':'新增计划')+'</h3>'+
@@ -954,6 +1013,8 @@ openModal('<h3>'+icon(t?'edit':'plus')+(t?'编辑「'+esc(t.title)+'」':'新增
 '<label>关联目标</label><select id="at-goal"><option value="">无</option>'+DB.goals.map(g=>'<option value="'+g.id+'" '+(t&&t.goalId===g.id?'selected':'')+'>'+esc(g.title)+'</option>').join('')+'</select>'+
 '<div style="display:flex;gap:10px"><div style="flex:1"><label>预计开始时间</label><input type="date" id="at-start" value="'+(t&&t.startDate?t.startDate:(t?'':d))+'"></div>'+
 '<div style="flex:1"><label>截止日期</label><input type="date" id="at-due" value="'+(t&&t.dueDate?t.dueDate:(t?'':d))+'"></div></div>'+
+'<div style="display:flex;gap:10px"><div style="flex:1"><label>开始时间（可选）</label><input type="time" id="at-start-t" value="'+(t&&t.startTime?t.startTime:(!t&&pf.time?pf.time:''))+'"></div>'+
+'<div style="flex:1"><label>结束时间（可选）</label><input type="time" id="at-end-t" value="'+(t&&t.endTime?t.endTime:pfEnd)+'"></div></div>'+
 '<label class="chk"><input type="checkbox" id="at-period" '+(period?'checked':'')+' onchange="App.periodToggle(this)"> 重复任务</label>'+
 '<div id="at-wd-wrap" style="display:'+(period?'block':'none')+'">'+
 '<label>每周安排 <small style="color:var(--muted)">（每周 <b id="at-wd-n">'+wd.length+'</b> 次）</small></label>'+
@@ -979,7 +1040,9 @@ if(period){if(!start||!due){showToast('时间段任务需要开始和截止日�
 const weekdays=period?$$('#at-wd .wd-cb input').filter(i=>i.checked).map(i=>Number(i.value)):[];
 if(period&&!weekdays.length){showToast('请至少选择一天');return;}
 const skipHolidays=!!(period&&$('#at-skip').checked);
-const data={title:title,desc:$('#at-desc').value.trim(),category:$('#at-cat').value,goalId:$('#at-goal').value||null,startDate:start,dueDate:due,period:period,weekdays:weekdays,skipHolidays:skipHolidays,priority:Number($('#at-pri').value),updatedAt:Date.now()};
+const startTime=$('#at-start-t').value||null,endTime=$('#at-end-t').value||null;
+if(endTime&&!startTime){showToast('请填写开始时间');return;}
+const data={title:title,desc:$('#at-desc').value.trim(),category:$('#at-cat').value,goalId:$('#at-goal').value||null,startDate:start,dueDate:due,period:period,weekdays:weekdays,skipHolidays:skipHolidays,priority:Number($('#at-pri').value),startTime:startTime,endTime:endTime,updatedAt:Date.now()};
 if(tid){
 const t=DB.tasks.find(x=>x.id===tid);if(!t){closeModal();return;}
 Object.assign(t,data);
@@ -1148,7 +1211,7 @@ if(periodDoneCount(t)>=periodTotal(t)){t.status='done';t.progress=100;t.complete
 });
 if(changed)save();
 }
-function undoDone(id){const t=DB.tasks.find(x=>x.id===id);if(!t)return;const T=todayStr();if((t.doneDates||[]).includes(T)){t.doneDates=(t.doneDates||[]).filter(d=>d!==T);if(t.goalId)goalAdd(t.goalId,-1);}t.updatedAt=Date.now();save();closePop();render();showToast('已撤销今日完成');}
+function undoDone(id){const t=DB.tasks.find(x=>x.id===id);if(!t)return;const T=todayStr();if((t.doneDates||[]).includes(T)){t.doneDates=(t.doneDates||[]).filter(d=>d!==T);if(t.goalId)goalAdd(t.goalId,-1);}t.updatedAt=Date.now();save();render();showToast('已撤销今日完成');}
 /* ========== 重要倒计时 ========== */
 let evId=null;
 function countdownHtml(){
@@ -1320,9 +1383,15 @@ nav(k){state.tab=k;render();},
 weekShift(n){state.weekStart=addDays(state.weekStart,n*7);render();},
 weekNow(){state.weekStart=startOfWeek(new Date());render();},
 weekReport:weekReport,monthReport:monthReport,buildMonthReport:buildMonthReport,
-calShift(n){const d=new Date(state.calY,state.calM+n,1);state.calY=d.getFullYear();state.calM=d.getMonth();render();},
-calToday(){state.calY=new Date().getFullYear();state.calM=new Date().getMonth();render();},
-popDay:popDay,
+calView(k){state.calView=k;render();},
+calShift(n){
+if(state.calView==='week'){state.weekStart=addDays(state.weekStart,n*7);}
+else if(state.calView==='day'){state.calD=fmt(addDays(parseD(state.calD),n));}
+else{const d=new Date(state.calY,state.calM+n,1);state.calY=d.getFullYear();state.calM=d.getMonth();}
+render();},
+calToday(){state.calY=new Date().getFullYear();state.calM=new Date().getMonth();state.calD=todayStr();state.weekStart=startOfWeek(new Date());render();},
+calGoDay(ds){state.calView='day';state.calD=ds;render();},
+calGoWeek(ds){state.calView='week';state.weekStart=startOfWeek(parseD(ds));render();},
 addTask:addTask,periodToggle:periodToggle,weekdayPick:weekdayPick,saveTask:saveTask,
 editTask:editTask,delTask:delTask,goalPlus:goalPlus,
 done:done,undoDone:undoDone,defer:defer,
@@ -1339,8 +1408,7 @@ syncNow:syncNow,setSyncEnabled:setSyncEnabled,setSyncKey:setSyncKey,
 scrollTask(id){state.tab='today';render();setTimeout(()=>{const el=document.getElementById('tk-'+id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.transition='box-shadow .4s';el.style.boxShadow='0 0 0 4px rgba(76,154,106,.35)';setTimeout(()=>{el.style.boxShadow='';},1600);}},60);}
 };
 /* ========== 初始化 ========== */
-document.addEventListener('click',e=>{const p=$('#pop');if(p.style.display==='block'&&!e.target.closest('#pop')&&!e.target.closest('.cal-cell'))closePop();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closePop();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 load();
 const n=autoDefer();
 settlePeriods();

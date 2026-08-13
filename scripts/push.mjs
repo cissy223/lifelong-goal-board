@@ -85,7 +85,7 @@ const tree = await api('/git/trees', {
   body: JSON.stringify({ base_tree: baseTree, tree: treeItems }),
 });
 
-const msg = process.argv.find(a => a.startsWith('--message='))?.slice(9)
+const msg = process.argv.find(a => a.startsWith('--message='))?.slice(10)
   || ('update: ' + new Date().toLocaleString('zh-CN', { hour12: false }));
 const commit = await api('/git/commits', {
   method: 'POST',

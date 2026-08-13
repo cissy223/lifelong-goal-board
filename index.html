@@ -328,6 +328,7 @@ textarea{resize:vertical}
 'use strict';
 /* ========== 常量 ========== */
 const LS_KEY='lifelong-goal-board';
+const UI_KEY='lifelong-goal-board-ui';
 const THEMES=['学习','健康','工作','理财','人际','兴趣'];
 const THEME_COLOR={'学习':'#E07B39','健康':'#D4A92B','工作':'#4C9A6A','理财':'#3E7CB1','人际':'#5B5FA6','兴趣':'#8E6BBF'};
 const TYPE_COLOR={'感悟':'#3E7CB1','视频链接':'#8E6BBF','成品':'#4C9A6A','通用':'#C08A3E'};
@@ -414,6 +415,18 @@ out.settings.sync=Object.assign({enabled:false,key:'',lastSyncAt:null,serverUpda
 return out;
 }
 function save(){DB.meta.updatedAt=Date.now();try{localStorage.setItem(LS_KEY,JSON.stringify(DB));}catch(e){showToast('保存失败：本地存储空间不足');}scheduleSyncPush();}
+function saveUI(){try{localStorage.setItem(UI_KEY,JSON.stringify({tab:state.tab,calY:state.calY,calM:state.calM,calView:state.calView,weekStart:fmt(state.weekStart),showHiddenEvents:!!state.showHiddenEvents}));}catch(e){}}
+function restoreUI(){
+try{
+const raw=localStorage.getItem(UI_KEY);if(!raw)return;
+const u=JSON.parse(raw);if(!u||typeof u!=='object')return;
+if(typeof u.tab==='string'&&TABS.some(t=>t[0]===u.tab))state.tab=u.tab;
+const y=Number(u.calY);if(Number.isInteger(y)&&y>=2000&&y<=2100)state.calY=y;
+const m=Number(u.calM);if(Number.isInteger(m)&&m>=0&&m<=11)state.calM=m;
+if(u.calView==='month'||u.calView==='week')state.calView=u.calView;
+if(typeof u.weekStart==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(u.weekStart)){const dd=parseD(u.weekStart);if(!isNaN(dd.getTime()))state.weekStart=startOfWeek(dd);}
+if(typeof u.showHiddenEvents==='boolean')state.showHiddenEvents=u.showHiddenEvents;
+}catch(e){}}
 function load(){
 try{
 const raw=localStorage.getItem(LS_KEY);
@@ -1388,6 +1401,7 @@ const v={today:viewToday,board:viewBoard,week:viewWeek,cal:viewCal,me:viewMe}[st
 $('#main').innerHTML=v();
 $('#tabbar').innerHTML=TABS.map(t=>'<button class="nav-i '+(state.tab===t[0]?'active':'')+'" onclick="App.nav(\''+t[0]+'\')">'+icon(t[2])+'<span>'+t[1]+'</span></button>').join('');
 window.scrollTo(0,0);
+saveUI();
 }
 const App={
 nav(k){state.tab=k;render();},
@@ -1421,6 +1435,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 load();
 const n=autoDefer();
 settlePeriods();
+restoreUI();
 render();
 syncPull();
 if(n)setTimeout(()=>showToast('已自动顺延 '+n+' 项逾期任务到明天'),600);

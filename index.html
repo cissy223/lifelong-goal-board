@@ -675,8 +675,8 @@ return '<section class="card goal '+(risk!=='ok'?risk:'')+'">'+
 '<span>'+icon('target')+'日均 <b>'+rate.toFixed(1)+' '+g.unit+'</b></span>'+
 '<span>'+icon('fire')+'连续 <b>'+streakInfo().streak+' 天</b></span>'+
 '</div></div></div>'+
-'<div style="margin-top:10px"><div style="font-size:.8rem;font-weight:600;margin-bottom:4px">'+icon('fire')+'最近记录（近 7 天）</div>'+
-'<div class="g-bars">'+bars7(g.theme)+'</div>'+
+'<div class="card" style="margin-top:10px;padding:10px"><div style="font-size:.8rem;font-weight:600;margin-bottom:4px">'+icon('fire')+'最近记录（近 7 天）</div>'+
+'<div style="background:var(--card2);border-radius:10px;padding:6px 4px;margin-bottom:4px">'+bars7(g.theme)+'</div>'+
 (recentCk.length?recentCk.map(c=>{
 const amt=Number(c.amount)||0;
 const stat=amt>0?'+'+amt+(c.unit||''):'';
@@ -687,8 +687,8 @@ return '<div style="display:flex;gap:6px;padding:5px 0;border-bottom:1px dashed 
 '<div style="flex:1;min-width:0"><b style="font-size:.8rem;color:'+TYPE_COLOR[c.type]+'">'+c.type+'</b>'+(stat?' <span style="color:var(--green);font-weight:600">'+stat+'</span>':'')+(cont?'<div style="color:var(--muted);font-size:.75rem">'+short(cont)+'</div>':'')+'</div></div>';
 }).join(''):'<div class="empty">最近 7 天还没有该主题的打卡</div>')+'</div>'+
 (riskTip?'<div style="margin-top:10px;font-size:.8rem;color:'+(risk==='danger'?'var(--danger)':'var(--warn)')+'">'+icon('alert')+' '+riskTip+'</div>':'')+
-'<div style="margin-top:10px;font-size:.8rem;color:var(--muted)">'+icon('target')+'关联任务 '+linkTasks.length+' 项（进行中 '+linkTodo+' / 已完成 '+linkDone+'）</div>'+
-'<div class="g-done">'+(doneTasks.length?doneTasks.map(t=>'<div class="g-done-i">'+icon('smile')+'<span>'+esc(t.title)+'</span><em>'+PRAISE[(t.title||'').length%PRAISE.length]+'</em></div>').join(''):'<div class="empty">还没有完成的关联任务</div>')+'</div>'+
+'<div class="card" style="margin-top:10px;padding:10px"><div style="font-size:.8rem;font-weight:600;margin-bottom:4px">'+icon('target')+'关联任务（进行中 '+linkTodo+' / 已完成 '+linkDone+'）</div>'+
+(doneTasks.length?doneTasks.map(t=>'<div class="g-done-i">'+icon('smile')+'<span>'+esc(t.title)+'</span><em>'+PRAISE[(t.title||'').length%PRAISE.length]+'</em></div>').join(''):'<div class="empty">还没有完成的关联任务</div>')+'</div>'+
 '</section>';
 }
 function viewBoard(){

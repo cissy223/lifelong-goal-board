@@ -663,7 +663,6 @@ const pace=streakInfo().activeDays7/7;
 const rate=Math.max(planned,pace);
 const risk=pct<expPct-20?'danger':pct<expPct-8?'warn':'ok';
 const riskTip=risk==='danger'?'进度落后于计划（应到 '+expPct+'%）。建议把目标拆小、降低每日量，先找回节奏。':risk==='warn'?'进度略低于计划（应到 '+expPct+'%）。本周加一点量就能追回来。':'';
-const doneTasks=DB.tasks.filter(t=>t.goalId===g.id&&t.status==='done');
 const linkTasks=DB.tasks.filter(t=>t.goalId===g.id);
 const linkTodo=linkTasks.filter(t=>t.status==='todo').length;
 const linkDone=linkTasks.filter(t=>t.status==='done').length;
@@ -692,7 +691,7 @@ return '<div style="display:flex;gap:6px;padding:5px 0;border-bottom:1px dashed 
 }).join(''):'<div class="empty">最近 7 天还没有该主题的打卡</div>')+'</div>'+
 (riskTip?'<div style="margin-top:10px;font-size:.8rem;color:'+(risk==='danger'?'var(--danger)':'var(--warn)')+'">'+icon('alert')+' '+riskTip+'</div>':'')+
 '<div class="card" style="margin-top:10px;padding:10px"><div style="font-size:.8rem;font-weight:600;margin-bottom:4px">'+icon('target')+'关联任务（进行中 '+linkTodo+' / 已完成 '+linkDone+'）</div>'+
-(doneTasks.length?doneTasks.map(t=>'<div class="g-done-i">'+icon('smile')+'<span>'+esc(t.title)+'</span><em>'+PRAISE[(t.title||'').length%PRAISE.length]+'</em></div>').join(''):'<div class="empty">还没有完成的关联任务</div>')+'</div>'+
+(linkTasks.length?linkTasks.map(t=>'<div class="g-done-i" style="cursor:pointer" onclick="App.editTask(\''+t.id+'\')">'+icon(t.status==='done'?'smile':'clock')+'<span>'+esc(t.title)+'</span><em>'+(t.status==='done'?PRAISE[(t.title||'').length%PRAISE.length]:'进行中')+'</em></div>').join(''):'<div class="empty">还没有关联任务</div>')+'</div>'+
 '</section>';
 }
 function viewBoard(){

@@ -213,6 +213,7 @@ textarea{resize:vertical}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(80px);background:#2f3a2e;color:#fff;padding:10px 18px;border-radius:99px;font-size:.85rem;z-index:400;opacity:0;transition:.3s;pointer-events:none;max-width:86vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.2)}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.goal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:8px}
 .stat{background:var(--card2);border-radius:12px;padding:10px;text-align:center}
 .stat b{font-size:1.2rem;display:block;color:var(--green)}
 .stat span{font-size:.75rem;color:var(--muted)}
@@ -241,6 +242,7 @@ textarea{resize:vertical}
 .g-head .g-tags{justify-content:center}
 .g-head .g-tags .btn{margin-left:0!important}
 .stat-grid{grid-template-columns:repeat(2,1fr)}
+.goal-grid{grid-template-columns:1fr}
 .cal-cell{min-height:56px}
 .cal-head{justify-content:center;text-align:center}
 .cal-head b{flex:1 1 100%;order:-1;min-width:0}
@@ -734,7 +736,7 @@ return '<section class="stat-grid">'+
 '<div class="stat"><b>'+DB.checkins.length+'</b><span>累计打卡</span></div>'+
 '</section>'+
 '<section class="sec"><h2 style="display:flex;align-items:center;gap:8px;margin:6px 0 10px">'+icon('board')+'目标看板</h2>'+
-(DB.goals.length?DB.goals.map(goalCard).join(''):'<div class="empty">还没有目标</div><button class="btn primary block" style="margin-top:8px" onclick="App.goalModal(\'\')">'+icon('plus')+'新增目标</button>')+'</section>';
+(DB.goals.length?'<div class="goal-grid">'+DB.goals.map(goalCard).join('')+'</div>':'<div class="empty">还没有目标</div><button class="btn primary block" style="margin-top:8px" onclick="App.goalModal(\'\')">'+icon('plus')+'新增目标</button>')+'</section>';
 }
 function viewWeek(){
 const ws=state.weekStart,wStart=fmt(ws),wEnd=fmt(addDays(ws,6));

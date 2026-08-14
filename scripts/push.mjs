@@ -20,6 +20,11 @@ const FILES = [
   'scripts/deploy.mjs',
   'scripts/_fetch-blobs.mjs',
   'scripts/push.mjs',
+  'manifest.webmanifest',
+  'sw.js',
+  'icons/icon-512.png',
+  'icons/icon-192.png',
+  'icons/icon-180.png',
 ];
 
 function token() {
@@ -64,7 +69,8 @@ const files = [];
 for (const rel of FILES) {
   const p = path.join(ROOT, rel);
   if (fs.existsSync(p)) {
-    files.push({ rel, content: fs.readFileSync(p, 'utf8') });
+    const isBin = /\.(png|jpg|jpeg|gif|ico|webp)$/i.test(rel);
+    files.push({ rel, encoding: isBin ? 'base64' : 'utf-8', content: isBin ? fs.readFileSync(p).toString('base64') : fs.readFileSync(p, 'utf8') });
   }
 }
 
@@ -79,7 +85,7 @@ let changed = 0;
 for (const f of files) {
   const blob = await api('/git/blobs', {
     method: 'POST',
-    body: JSON.stringify({ content: f.content, encoding: 'utf-8' }),
+    body: JSON.stringify({ content: f.content, encoding: f.encoding }),
   });
   const item = { path: f.rel, mode: '100644', type: 'blob', sha: blob.sha };
   treeItems.push(item);
